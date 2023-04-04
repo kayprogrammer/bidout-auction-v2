@@ -1,2 +1,2 @@
-# bidout-auction-v2
-A simple bidding api built with sanic
+# BIDOUT AUCTION V2 (WORK IN PROGRESS)
+A simple auction api built with sanic
