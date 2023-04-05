@@ -3,8 +3,8 @@ from sanic.response import json
 from sanic_ext import Config
 from textwrap import dedent
 from sanic_ext import openapi
-
-from app.api.routes.auth import bp
+from app.core.database import inject_session, close_session
+from app.api.routes.auth import auth_router
 from app.core.config import settings
 
 
@@ -20,7 +20,9 @@ def create_app() -> Sanic:
             """
         ),
     )
-    app.blueprint(bp)
+    app.register_middleware(inject_session, 'request')
+    app.register_middleware(close_session, 'response')
+    app.blueprint(auth_router)
     return app
 
 

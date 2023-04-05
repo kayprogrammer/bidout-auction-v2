@@ -5,8 +5,9 @@ from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
 from sanic_pydantic import webargs
 from app.api.schemas.auth import RegisterUserSchema, LoginUserSchema
+from app.db.models.accounts import User
 
-bp = Blueprint("auth", url_prefix="/api/v2/auth")
+auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
 
 
 class RegisterView(HTTPMethodView):
@@ -19,7 +20,6 @@ class RegisterView(HTTPMethodView):
     )
     @webargs(body=RegisterUserSchema)
     async def post(self, request, **kwargs):
-        print(kwargs)
         return json({"my": "blueprint"})
 
 
@@ -34,5 +34,5 @@ class LoginView(HTTPMethodView):
         return json({"my": "blueprint"})
 
 
-bp.add_route(RegisterView.as_view(), "/register")
-bp.add_route(LoginView.as_view(), "/login")
+auth_router.add_route(RegisterView.as_view(), "/register")
+auth_router.add_route(LoginView.as_view(), "/login")
