@@ -11,6 +11,8 @@ auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
 
 
 class RegisterView(HTTPMethodView):
+    decorators = [webargs(body=RegisterUserSchema)]
+
     @openapi.definition(
         body=RequestBody(RegisterUserSchema, required=True),
         summary="Register a new user",
@@ -18,12 +20,15 @@ class RegisterView(HTTPMethodView):
         # operation=
         # response=[Success, Response(Failure, status=400)],
     )
-    @webargs(body=RegisterUserSchema)
-    async def post(self, request, **kwargs):
-        return json({"my": "blueprint"})
+    async def post(self, request, body: RegisterUserSchema):
+        data = body
+        print(data)
+        return json(data)
 
 
 class LoginView(HTTPMethodView):
+    decorators = [webargs(body=LoginUserSchema)]
+
     @openapi.definition(
         body=RequestBody(LoginUserSchema, required=True),
         summary="Login a user",
@@ -34,5 +39,5 @@ class LoginView(HTTPMethodView):
         return json({"my": "blueprint"})
 
 
-auth_router.add_route(RegisterView.as_view(), "/register")
+auth_router.add_route(RegisterView.as_view(), "/register", error_format="json")
 auth_router.add_route(LoginView.as_view(), "/login")

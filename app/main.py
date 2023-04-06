@@ -1,11 +1,17 @@
 from sanic import Sanic
 from sanic.response import json
+from sanic.exceptions import SanicException
 from sanic_ext import Config
+from pydantic import ValidationError
 from textwrap import dedent
 from sanic_ext import openapi
 from app.core.database import inject_session, close_session
 from app.api.routes.auth import auth_router
 from app.core.config import settings
+from app.common.exception_handlers import (
+    sanic_exceptions_handler,
+    validation_exception_handler,
+)
 
 
 def create_app() -> Sanic:
@@ -20,8 +26,12 @@ def create_app() -> Sanic:
             """
         ),
     )
-    app.register_middleware(inject_session, 'request')
-    app.register_middleware(close_session, 'response')
+    app.register_middleware(inject_session, "request")
+    app.register_middleware(close_session, "response")
+
+    app.error_handler.add(SanicException, sanic_exceptions_handler)
+    app.error_handler.add(Exception, validation_exception_handler)
+
     app.blueprint(auth_router)
     return app
 

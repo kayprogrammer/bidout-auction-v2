@@ -8,12 +8,12 @@ from .base import ResponseSchema
 class RegisterUserSchema(BaseModel):
     first_name: str
     last_name: str
-    email: str 
+    email: str
     password: str
 
     @validator("email")
     def validate_email(cls, v):
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         email_valid = bool(re.match(pattern, v))
         if not email_valid:
             raise ValueError("Invalid email!")
