@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     DEBUG: bool
 
     # TOKENS
-    EMAIL_OTP_EXPIRE_MINUTES: int
+    EMAIL_OTP_EXPIRE_SECONDS: int
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_MINUTES: int
 

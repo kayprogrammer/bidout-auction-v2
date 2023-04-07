@@ -11,7 +11,7 @@ from sqlalchemy.orm import relationship
 
 from .base import BaseModel
 from datetime import datetime
-
+from app.core.config import settings
 
 class Timezone(BaseModel):
     __tablename__ = "timezones"
@@ -91,6 +91,6 @@ class Otp(BaseModel):
     def check_expiration(self):
         now = datetime.utcnow()
         diff = now - self.updated_at
-        if diff.total_seconds() > 900:
+        if diff.total_seconds() > settings.EMAIL_OTP_EXPIRE_SECONDS:
             return True
         return False
