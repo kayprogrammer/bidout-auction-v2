@@ -2,7 +2,8 @@ import re
 from typing import Optional
 
 from pydantic import BaseModel, validator, Field
-from .base import ResponseSchema
+from app.core.database import SessionLocal
+from app.db.managers.accounts import user_manager
 
 
 class RegisterUserSchema(BaseModel):
@@ -17,6 +18,13 @@ class RegisterUserSchema(BaseModel):
         email_valid = bool(re.match(pattern, v))
         if not email_valid:
             raise ValueError("Invalid email!")
+
+        db = SessionLocal()
+        existing_user = user_manager.get_by_email(db, v)
+        if existing_user:
+            db.close()
+            raise ValueError("Email already registered!")
+        db.close()
         return v
 
     @validator("password")

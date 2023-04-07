@@ -4,9 +4,11 @@ from sanic.views import HTTPMethodView
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
 from sanic_pydantic import webargs
-from app.api.schemas.auth import RegisterUserSchema, LoginUserSchema, ResponseSchema
+from app.api.schemas.auth import RegisterUserSchema, LoginUserSchema
+from app.api.schemas.base import ResponseSchema
 from app.db.models.accounts import User
 from app.common.responses import CustomResponse
+from app.db.managers.accounts import user_manager
 
 auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
 
@@ -23,7 +25,7 @@ class RegisterView(HTTPMethodView):
     async def post(self, request, **kwargs):
         db = request.ctx.session
         data = request.json
-        print(data)
+        user_manager.create(db, data)
         return CustomResponse.success(
             message="Registration successful", status_code=201
         )

@@ -38,6 +38,7 @@ class RequestErrorHandler:
 
 
 def sanic_exceptions_handler(request, exc):
+    print(exc)
     if isinstance(exc, ServerError) or not hasattr(exc, "status_code"):
         return sanic_json(
             {
