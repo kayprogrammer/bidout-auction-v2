@@ -2,6 +2,7 @@ from sanic import Sanic
 from sanic.response import json
 from sanic_ext import Config
 from sanic_ext import openapi
+from sanic_session import Session
 
 from textwrap import dedent
 
@@ -42,6 +43,7 @@ def create_app() -> Sanic:
 
     app.blueprint(auth_router)
     app.ctx.template_env = env
+    Session(app)
     return app
 
 

@@ -38,7 +38,7 @@ class RegisterUserSchema(BaseModel):
         return v
 
 
-class VerifyEmailSchema(BaseModel):
+class VerifyOtpSchema(BaseModel):
     email: str
     otp: int
 
@@ -47,12 +47,22 @@ class VerifyEmailSchema(BaseModel):
         return validate_email(v)
 
 
-class ResendVerificationEmailSchema(BaseModel):
+class RequestOtpSchema(BaseModel):
     email: str
 
     @validator("email")
     def validate_email(cls, v):
         return validate_email(v)
+
+
+class SetNewPasswordSchema(BaseModel):
+    password: str
+
+    @validator("password")
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must contain at least 8 characters")
+        return v
 
 
 class LoginUserSchema(BaseModel):

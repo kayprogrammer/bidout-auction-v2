@@ -33,6 +33,11 @@ def sort_email(db, user, type):
         otp = generate_otp(db, user)
         data = {"template": template, "subject": subject, "otp": otp}
 
+    elif type == "reset-success":
+        template = "password-reset-success.html"
+        subject = "Password reset successfully"
+        data = {"template": template, "subject": subject}
+
     return data
 
 

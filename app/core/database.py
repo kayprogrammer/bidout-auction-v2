@@ -14,11 +14,11 @@ Base = declarative_base()
 
 
 async def inject_session(request):
-    request.ctx.session = SessionLocal()
-    request.ctx.session_ctx_token = _base_model_session_ctx.set(request.ctx.session)
+    request.ctx.db = SessionLocal()
+    request.ctx.session_ctx_token = _base_model_session_ctx.set(request.ctx.db)
 
 
 async def close_session(request, response):
-    if hasattr(request.ctx, "session_ctx_token") and request.ctx.session is not None:
+    if hasattr(request.ctx, "session_ctx_token") and request.ctx.db is not None:
         _base_model_session_ctx.reset(request.ctx.session_ctx_token)
-        request.ctx.session.close()
+        request.ctx.db.close()
