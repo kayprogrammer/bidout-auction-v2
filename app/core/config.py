@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional
 
 from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, EmailStr, validator
 
@@ -42,6 +42,15 @@ class Settings(BaseSettings):
     FIRST_REVIEWER_EMAIL: EmailStr
     FIRST_REVIEWER_PASSWORD: str
 
+    # EMAIL CONFIG
+    MAIL_SENDER: str
+    MAIL_SENDER_PASSWORD: str
+    MAIL_SEND_HOST: str
+    MAIL_SEND_PORT: int
+    MAIL_TLS: bool
+    MAIL_START_TLS: bool
+    MAIL_CONFIG: Optional[dict] = None
+
     @validator("SQLALCHEMY_DATABASE_URL", pre=True)
     def assemble_postgres_connection(
         cls, v: Optional[str], values: Dict[str, str]
@@ -61,6 +70,17 @@ class Settings(BaseSettings):
             port=values.get("POSTGRES_PORT"),
             path=f"/{values.get('POSTGRES_DB')}",
         )
+
+    @validator("MAIL_CONFIG", pre=True)
+    def assemble_mail_config(cls, v, values):
+        return {
+            "MAIL_SENDER": values.get("MAIL_SENDER"),
+            "MAIL_SENDER_PASSWORD": values.get("MAIL_SENDER_PASSWORD"),
+            "MAIL_SEND_HOST": values.get("MAIL_SEND_HOST"),
+            "MAIL_SEND_PORT": values.get("MAIL_SEND_PORT"),
+            "MAIL_TLS": values.get("MAIL_TLS"),
+            "MAIL_START_TLS": values.get("MAIL_START_TLS"),
+        }
 
     class Config:
         env_file = f"{PROJECT_DIR}/.env"

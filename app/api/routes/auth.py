@@ -31,18 +31,4 @@ class RegisterView(HTTPMethodView):
         )
 
 
-class LoginView(HTTPMethodView):
-    decorators = [webargs(body=LoginUserSchema)]
-
-    @openapi.definition(
-        body=RequestBody(LoginUserSchema, required=True),
-        summary="Login a user",
-        description="This endpoint generates new access and refresh tokens for a user",
-    )
-    async def post(self, request):
-        print(request)
-        return json({"my": "blueprint"})
-
-
 auth_router.add_route(RegisterView.as_view(), "/register")
-auth_router.add_route(LoginView.as_view(), "/login")
