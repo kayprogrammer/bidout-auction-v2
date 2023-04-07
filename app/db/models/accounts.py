@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from .base import BaseModel
+from datetime import datetime
 
 
 class Timezone(BaseModel):
@@ -41,11 +42,19 @@ class User(BaseModel):
     is_staff = Column(Boolean(), default=False)
 
     jwt = relationship(
-        "Jwt", foreign_keys="Jwt.user_id", back_populates="user", lazy=True
+        "Jwt",
+        foreign_keys="Jwt.user_id",
+        back_populates="user",
+        lazy=True,
+        uselist=False,
     )
 
     otp = relationship(
-        "Otp", foreign_keys="Otp.user_id", back_populates="user", lazy=True
+        "Otp",
+        foreign_keys="Otp.user_id",
+        back_populates="user",
+        lazy=True,
+        uselist=False,
     )
 
     def get_full_name(self):
@@ -78,3 +87,10 @@ class Otp(BaseModel):
 
     def __repr__(self):
         return f"User - {self.user.get_full_name} | Code - {self.code}"
+
+    def check_expiration(self):
+        now = datetime.utcnow()
+        diff = now - self.updated_at
+        if diff.total_seconds() > 900:
+            return True
+        return False

@@ -1,40 +1,6 @@
-from http import HTTPStatus
-from typing import Optional
 from sanic.response import json as sanic_json
-from sanic.exceptions import ServerError, BadRequest, NotFound
-from pydantic import ValidationError
+from sanic.exceptions import ServerError
 import json
-
-
-class Error(Exception):
-    """Base class for exceptions in this module."""
-
-    pass
-
-
-class RequestError(Error):
-    def __init__(
-        self, status_code: int, status_msg: str, error_msg: Optional[str] = None
-    ):
-        self.status_code = HTTPStatus(status_code)
-        self.status_msg = status_msg
-        self.error_msg = error_msg
-
-
-class RequestErrorHandler:
-    def __init__(self, exc: RequestError):
-        self.status_msg = exc.status_msg
-        self.status_code = exc.status_code
-        self.error_msg = exc.error_msg
-
-    def process_message(self):
-        return sanic_json(
-            {
-                "status": self.status_msg,
-                "message": self.error_msg,
-            },
-            status=self.status_code,
-        )
 
 
 def sanic_exceptions_handler(request, exc):

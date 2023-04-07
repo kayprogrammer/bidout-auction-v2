@@ -1,15 +1,7 @@
 from sanic import Sanic
 from sanic.response import json
-from sanic.exceptions import (
-    BadRequest,
-    RequestCancelled,
-    RequestTimeout,
-    HTTPException,
-)
 from sanic_ext import Config
 from sanic_ext import openapi
-from sanic_jinja2 import SanicJinja2
-from sanic_mail import Sanic_Mail
 
 from textwrap import dedent
 
@@ -20,6 +12,9 @@ from app.common.exception_handlers import (
     sanic_exceptions_handler,
     validation_exception_handler,
 )
+from jinja2 import Environment, PackageLoader
+
+env = Environment(loader=PackageLoader("app", "templates"))
 
 
 def create_app() -> Sanic:
@@ -46,13 +41,11 @@ def create_app() -> Sanic:
     app.error_handler.add(Exception, sanic_exceptions_handler)
 
     app.blueprint(auth_router)
-    app.config.update(settings.MAIL_CONFIG)
+    app.ctx.template_env = env
     return app
 
 
 app = create_app()
-jinja = SanicJinja2(app)
-sender = Sanic_Mail(app)
 
 
 @openapi.definition(
