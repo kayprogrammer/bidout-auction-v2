@@ -1,8 +1,7 @@
 from sanic import Sanic
 from sanic.response import json
-from sanic.exceptions import SanicException
+from sanic.exceptions import BadRequest, RequestCancelled, RequestTimeout, HTTPException
 from sanic_ext import Config
-from pydantic import ValidationError
 from textwrap import dedent
 from sanic_ext import openapi
 from app.core.database import inject_session, close_session
@@ -16,7 +15,12 @@ from app.common.exception_handlers import (
 
 def create_app() -> Sanic:
     app = Sanic(name=settings.PROJECT_NAME)
-    app.extend(config=Config(oas_ui_default="swagger", oas_url_prefix="/"))
+    app.extend(
+        config=Config(
+            oas_ui_default="swagger",
+            oas_url_prefix="/",
+        )
+    )
     app.ext.openapi.describe(
         f"{settings.PROJECT_NAME} API",
         version="2",
@@ -28,9 +32,9 @@ def create_app() -> Sanic:
     )
     app.register_middleware(inject_session, "request")
     app.register_middleware(close_session, "response")
+    app.register_middleware(validation_exception_handler, "response")
 
-    app.error_handler.add(SanicException, sanic_exceptions_handler)
-    app.error_handler.add(Exception, validation_exception_handler)
+    app.error_handler.add(Exception, sanic_exceptions_handler)
 
     app.blueprint(auth_router)
     return app

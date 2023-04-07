@@ -1,8 +1,9 @@
 from http import HTTPStatus
 from typing import Optional
-from sanic.response import json
-from sanic.exceptions import ServerError
+from sanic.response import json as sanic_json
+from sanic.exceptions import ServerError, BadRequest, NotFound
 from pydantic import ValidationError
+import json
 
 
 class Error(Exception):
@@ -27,7 +28,7 @@ class RequestErrorHandler:
         self.error_msg = exc.error_msg
 
     def process_message(self):
-        return json(
+        return sanic_json(
             {
                 "status": self.status_msg,
                 "message": self.error_msg,
@@ -37,16 +38,16 @@ class RequestErrorHandler:
 
 
 def sanic_exceptions_handler(request, exc):
-    if not isinstance(exc, ServerError):
-        return json(
+    if isinstance(exc, ServerError) or not hasattr(exc, "status_code"):
+        return sanic_json(
             {
                 "status": "failure",
                 "message": "Server Error",
             },
-            status=exc.status_code,
+            status=500,
         )
-    elif not isinstance(exc, ValidationError):
-        return json(
+    else:
+        return sanic_json(
             {
                 "status": "failure",
                 "message": str(exc),
@@ -55,23 +56,23 @@ def sanic_exceptions_handler(request, exc):
         )
 
 
-def validation_exception_handler(request, exc: ValidationError):
-    print(exc)
-    # Get the original 'detail' list of errors
-    details = exc.errors()
-    modified_details = {}
-    for error in details:
-        try:
-            field_name = error["loc"][1]
-        except:
-            field_name = error["loc"][0]
+def validation_exception_handler(request, exc):
+    if exc.status == 422:
+        errors = json.loads(exc.body)
 
-        modified_details[f"{field_name}"] = error["msg"]
-    return json(
-        {
-            "status": "failure",
-            "message": "Invalid Entry",
-            "data": modified_details,
-        },
-        status_code=422,
-    )
+        modified_details = {}
+        for error in errors:
+            try:
+                field_name = error["loc"][1]
+            except:
+                field_name = error["loc"][0]
+
+            modified_details[f"{field_name}"] = error["msg"]
+        return sanic_json(
+            {
+                "status": "failure",
+                "message": "Invalid Entry",
+                "data": modified_details,
+            },
+            status=422,
+        )

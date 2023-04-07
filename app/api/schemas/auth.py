@@ -32,12 +32,3 @@ class LoginUserSchema(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-class LoginResponseDataSchema(BaseModel):
-    access: str
-    refresh: str
-
-
-class LoginResponseSchema(ResponseSchema):
-    data: LoginResponseDataSchema
