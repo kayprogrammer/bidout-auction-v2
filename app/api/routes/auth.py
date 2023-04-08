@@ -9,6 +9,7 @@ from app.api.schemas.auth import (
     RequestOtpSchema,
     SetNewPasswordSchema,
     LoginUserSchema,
+    RefreshTokensSchema,
 )
 from app.api.schemas.base import ResponseSchema
 from app.db.models.accounts import User
@@ -16,7 +17,11 @@ from app.common.responses import CustomResponse
 from app.db.managers.accounts import user_manager, otp_manager, jwt_manager
 from app.api.utils.emails import send_email
 from app.core.security import verify_password
-from app.api.utils.tokens import create_access_token, create_refresh_token
+from app.api.utils.tokens import (
+    create_access_token,
+    create_refresh_token,
+    verify_refresh_token,
+)
 
 auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
 
@@ -193,7 +198,7 @@ class LoginView(HTTPMethodView):
     @openapi.definition(
         body=RequestBody(LoginUserSchema, required=True),
         summary="Login a user",
-        description="This endpoint generates new access and refresh tokens authentication",
+        description="This endpoint generates new access and refresh tokens for authentication",
         response=Response(ResponseSchema),
     )
     async def post(self, request, **kwargs):
@@ -222,6 +227,41 @@ class LoginView(HTTPMethodView):
         )
 
 
+class RefreshTokensView(HTTPMethodView):
+    decorators = [webargs(body=RefreshTokensSchema)]
+
+    @openapi.definition(
+        body=RequestBody(RefreshTokensSchema, required=True),
+        summary="Refresh tokens",
+        description="This endpoint refresh tokens by generating new access and refresh tokens for a user",
+        response=Response(ResponseSchema),
+    )
+    async def post(self, request, **kwargs):
+        db = request.ctx.db
+        data = request.json
+        token = data["refresh"]
+        jwt = jwt_manager.get_by_refresh(db, token)
+        if not jwt:
+            return CustomResponse.error(
+                "Refresh token does not exists", status_code=404
+            )
+        if not verify_refresh_token(token):
+            return CustomResponse.error(
+                "Refresh token is invalid or expired", status_code=401
+            )
+
+        access = create_access_token({"user_id": str(jwt.user_id)})
+        refresh = create_refresh_token()
+
+        jwt_manager.update(db, jwt, {"access": access, "refresh": refresh})
+
+        return CustomResponse.success(
+            message="Tokens refresh successful",
+            data={"access": access, "refresh": refresh},
+            status_code=200,
+        )
+
+
 auth_router.add_route(RegisterView.as_view(), "/register")
 auth_router.add_route(VerifyEmailView.as_view(), "/verify-email")
 auth_router.add_route(
@@ -233,3 +273,4 @@ auth_router.add_route(
 )
 auth_router.add_route(SetNewPasswordView.as_view(), "/set-new-password")
 auth_router.add_route(LoginView.as_view(), "/login")
+auth_router.add_route(RefreshTokensView.as_view(), "/refresh")

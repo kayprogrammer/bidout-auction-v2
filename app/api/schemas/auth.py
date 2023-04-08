@@ -69,5 +69,6 @@ class LoginUserSchema(BaseModel):
     email: str
     password: str
 
-    class Config:
-        orm_mode = True
+
+class RefreshTokensSchema(BaseModel):
+    refresh: str
