@@ -42,6 +42,8 @@ def create_app() -> Sanic:
 
     app.blueprint(auth_router)
     app.ctx.template_env = env
+    app.config.secret = settings.SECRET_KEY
+    app.config.CORS_ORIGINS = settings.CORS_ALLOWED_ORIGINS
     return app
 
 

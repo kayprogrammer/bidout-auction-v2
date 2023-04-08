@@ -13,8 +13,10 @@ from app.api.schemas.auth import (
 from app.api.schemas.base import ResponseSchema
 from app.db.models.accounts import User
 from app.common.responses import CustomResponse
-from app.db.managers.accounts import user_manager, otp_manager
+from app.db.managers.accounts import user_manager, otp_manager, jwt_manager
 from app.api.utils.emails import send_email
+from app.core.security import verify_password
+from app.api.utils.tokens import create_access_token, create_refresh_token
 
 auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
 
@@ -63,9 +65,9 @@ class VerifyEmailView(HTTPMethodView):
 
         otp = otp_manager.get_by_user_id(db, user_by_email.id)
         if not otp or otp.code != data["otp"]:
-            return CustomResponse.error("Incorrect Otp", status_code=400)
+            return CustomResponse.error("Incorrect Otp")
         if otp.check_expiration():
-            return CustomResponse.error("Expired Otp", status_code=400)
+            return CustomResponse.error("Expired Otp")
 
         user = user_manager.update(db, user_by_email, {"is_email_verified": True})
         otp_manager.delete(db, otp)
@@ -143,9 +145,9 @@ class VerifyPasswordResetOtpView(HTTPMethodView):
 
         otp = otp_manager.get_by_user_id(db, user_by_email.id)
         if not otp or otp.code != data["otp"]:
-            return CustomResponse.error("Incorrect Otp", status_code=400)
+            return CustomResponse.error("Incorrect Otp")
         if otp.check_expiration():
-            return CustomResponse.error("Expired Otp", status_code=400)
+            return CustomResponse.error("Expired Otp")
 
         response = CustomResponse.success(
             message="Otp verified successfully", status_code=200
@@ -167,17 +169,13 @@ class SetNewPasswordView(HTTPMethodView):
         db = request.ctx.db
         email = request.cookies.get("email")
         if not email:
-            return CustomResponse.error(
-                "Reset otp is not verified yet!", status_code=400
-            )
+            return CustomResponse.error("Reset otp is not verified yet!")
         password = request.json["password"]
         user_by_email = user_manager.get_by_email(db, email)
         if not user_by_email:
             return CustomResponse.error("Something went wrong", status_code=500)
 
         user_manager.update(db, user_by_email, {"password": password})
-
-        request.ctx.session.pop("email", None)
 
         # Send password reset success email
         send_email(request, db, user_by_email, "reset-success")
@@ -187,6 +185,41 @@ class SetNewPasswordView(HTTPMethodView):
         )
         response.delete_cookie("email")
         return response
+
+
+class LoginView(HTTPMethodView):
+    decorators = [webargs(body=LoginUserSchema)]
+
+    @openapi.definition(
+        body=RequestBody(LoginUserSchema, required=True),
+        summary="Login a user",
+        description="This endpoint generates new access and refresh tokens authentication",
+        response=Response(ResponseSchema),
+    )
+    async def post(self, request, **kwargs):
+        db = request.ctx.db
+        data = request.json
+        email = data["email"]
+        plain_password = data["password"]
+        user = user_manager.get_by_email(db, email)
+        if not user or verify_password(plain_password, user.password) == False:
+            return CustomResponse.error("Invalid credentials", status_code=401)
+
+        if not user.is_email_verified:
+            return CustomResponse.error("Verify your email first", status_code=401)
+
+        jwt_manager.delete_by_user_id(db, user.id)
+
+        # Create tokens and store in jwt model
+        access = create_access_token({"user_id": str(user.id)})
+        refresh = create_refresh_token()
+        jwt_manager.create(db, {"access": access, "refresh": refresh})
+
+        return CustomResponse.success(
+            message="Login successful",
+            data={"access": access, "refresh": refresh},
+            status_code=201,
+        )
 
 
 auth_router.add_route(RegisterView.as_view(), "/register")
@@ -199,3 +232,4 @@ auth_router.add_route(
     VerifyPasswordResetOtpView.as_view(), "/verify-password-reset-otp"
 )
 auth_router.add_route(SetNewPasswordView.as_view(), "/set-new-password")
+auth_router.add_route(LoginView.as_view(), "/login")

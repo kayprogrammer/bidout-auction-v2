@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_password_hash
 from app.db.managers.base import BaseManager
 from app.db.models.accounts import Jwt, Otp, Timezone, User
+from uuid import UUID
 
 
 class UserManager(BaseManager[User]):
@@ -18,6 +19,13 @@ class UserManager(BaseManager[User]):
         db.commit()
         db.refresh(user_obj)
         return user_obj
+
+    def update(self, db: Session, db_obj, obj_in) -> Optional[User]:
+        password = obj_in.get("password")
+        if password:
+            obj_in["password"] = get_password_hash(password)
+
+        return super().update(db, db_obj, obj_in)
 
 
 class TimezoneManager(BaseManager[Timezone]):
@@ -40,6 +48,12 @@ class JwtManager(BaseManager[Jwt]):
     def get_by_refresh(self, db: Session, refresh: str) -> Optional[Jwt]:
         jwt = db.query(self.model).filter_by(refresh=refresh).first()
         return jwt
+
+    def delete_by_user_id(self, db: Session, user_id: UUID):
+        jwt = db.query(self.model).filter_by(user_id=user_id).first()
+        if jwt:
+            db.delete(jwt)
+            db.commit()
 
 
 # How to use

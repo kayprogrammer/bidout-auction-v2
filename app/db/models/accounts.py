@@ -13,6 +13,7 @@ from .base import BaseModel
 from datetime import datetime
 from app.core.config import settings
 
+
 class Timezone(BaseModel):
     __tablename__ = "timezones"
     name = Column(String())

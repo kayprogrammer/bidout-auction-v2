@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     # PROJECT NAME, API PREFIX, CORS ORIGINS
     PROJECT_NAME: str
     FRONTEND_URL: str
+    CORS_ALLOWED_ORIGINS: str
 
     # POSTGRESQL
     POSTGRES_USER: str
