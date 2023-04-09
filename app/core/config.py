@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # SECURITY
     SECRET_KEY: str
 
-    # PROJECT NAME, API PREFIX, CORS ORIGINS
+    # PROJECT DETAILS
     PROJECT_NAME: str
     FRONTEND_URL: str
     CORS_ALLOWED_ORIGINS: str

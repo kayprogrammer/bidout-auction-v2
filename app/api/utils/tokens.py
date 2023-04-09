@@ -6,7 +6,7 @@ from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
-from app.db.models.accounts import Jwt, User
+from app.db.managers.accounts import user_manager, jwt_manager
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -39,7 +39,7 @@ def create_refresh_token(
 # verify refresh token
 def verify_refresh_token(token):
     try:
-        decoded_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         return True
     except:
         return False
@@ -51,15 +51,14 @@ def decodeJWT(db, token):
         return None
 
     try:
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        decoded = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=[ALGORITHM])
     except:
         return None
 
     if decoded:
-        user = db.query(User).filter_by(id=decoded["user_id"]).first()
-
+        user = user_manager.get_by_id(db, decoded["user_id"])
         if user:
-            jwt_obj = db.query(Jwt).filter_by(user_id=user.id).first()
+            jwt_obj = jwt_manager.get_by_user_id(db, user.id)
             if not jwt_obj:  # to confirm the validity of the token
                 return None
             return user

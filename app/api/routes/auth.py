@@ -22,6 +22,7 @@ from app.api.utils.tokens import (
     create_refresh_token,
     verify_refresh_token,
 )
+from app.api.utils.decorators import authorized
 
 auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
 
@@ -171,6 +172,7 @@ class SetNewPasswordView(HTTPMethodView):
         response=Response(ResponseSchema),
     )
     async def post(self, request, **kwargs):
+        print(request.headers)
         db = request.ctx.db
         email = request.cookies.get("email")
         if not email:
@@ -218,7 +220,9 @@ class LoginView(HTTPMethodView):
         # Create tokens and store in jwt model
         access = create_access_token({"user_id": str(user.id)})
         refresh = create_refresh_token()
-        jwt_manager.create(db, {"access": access, "refresh": refresh})
+        jwt_manager.create(
+            db, {"user_id": user.id, "access": access, "refresh": refresh}
+        )
 
         return CustomResponse.success(
             message="Login successful",
@@ -262,6 +266,24 @@ class RefreshTokensView(HTTPMethodView):
         )
 
 
+class LogoutView(HTTPMethodView):
+    decorators = [authorized()]
+
+    @openapi.definition(
+        summary="Logout a user",
+        description="This endpoint logs a user out from our application",
+        response=Response(ResponseSchema),
+        operation="security",
+    )
+    async def get(self, request, **kwargs):
+        db = request.ctx.db
+        user = request.ctx.user
+        jwt = jwt_manager.get_by_user_id(db, user.id)
+        jwt_manager.delete(db, jwt)
+
+        return CustomResponse.success(message="Logout successful")
+
+
 auth_router.add_route(RegisterView.as_view(), "/register")
 auth_router.add_route(VerifyEmailView.as_view(), "/verify-email")
 auth_router.add_route(
@@ -274,3 +296,4 @@ auth_router.add_route(
 auth_router.add_route(SetNewPasswordView.as_view(), "/set-new-password")
 auth_router.add_route(LoginView.as_view(), "/login")
 auth_router.add_route(RefreshTokensView.as_view(), "/refresh")
+auth_router.add_route(LogoutView.as_view(), "/logout")
