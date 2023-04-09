@@ -1,7 +1,6 @@
 from sqlalchemy import (
     Boolean,
     Column,
-    DateTime,
     ForeignKey,
     Integer,
     String,
@@ -12,6 +11,7 @@ from sqlalchemy.orm import relationship
 from .base import BaseModel
 from datetime import datetime
 from app.core.config import settings
+from app.db.models.listings import WatchList
 
 
 class Timezone(BaseModel):
@@ -42,6 +42,15 @@ class User(BaseModel):
     is_superuser = Column(Boolean(), default=False)
     is_staff = Column(Boolean(), default=False)
 
+    avatar_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("files.id", ondelete="CASCADE"),
+        unique=True,
+    )
+    avatar = relationship(
+        "File", foreign_keys=[avatar_id], back_populates="user_avatar"
+    )
+
     jwt = relationship(
         "Jwt",
         foreign_keys="Jwt.user_id",
@@ -58,17 +67,23 @@ class User(BaseModel):
         uselist=False,
     )
 
-    def get_full_name(self):
+    user_watchlists = relationship(
+        "Watchlist", foreign_keys="Watchlist.user_id", back_populates="user"
+    )
+
+    def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
     def __repr__(self):
-        return self.get_full_name()
+        return self.full_name()
 
 
 class Jwt(BaseModel):
     __tablename__ = "jwts"
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
     )
     user = relationship("User", foreign_keys=[user_id], back_populates="jwt")
     access = Column(String())
@@ -81,7 +96,9 @@ class Jwt(BaseModel):
 class Otp(BaseModel):
     __tablename__ = "otps"
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
     )
     user = relationship("User", foreign_keys=[user_id], back_populates="otp")
     code = Column(Integer())

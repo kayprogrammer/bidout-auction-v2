@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -13,3 +14,18 @@ class BaseModel(Base):
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+
+class File(BaseModel):
+    __tablename__ = "files"
+
+    resource_type = Column(String)
+    user_avatar = relationship(
+        "User", foreign_keys="Brand.avatar_id", back_populates="avatar", uselist=False
+    )
+    listing_image = relationship(
+        "Listing",
+        foreign_keys="Listing.image_id",
+        back_populates="image",
+        uselist=False,
+    )
