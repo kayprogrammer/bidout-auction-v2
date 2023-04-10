@@ -63,4 +63,4 @@ otp_manager = OtpManager(Otp)
 jwt_manager = JwtManager(Jwt)
 
 
-# this can now be uset to perform any available crud actions e.g user_manager.get_by_id(db=db, id=id)
+# this can now be used to perform any available crud actions e.g user_manager.get_by_id(db=db, id=id)

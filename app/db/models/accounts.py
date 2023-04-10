@@ -68,7 +68,7 @@ class User(BaseModel):
     )
 
     user_watchlists = relationship(
-        "Watchlist", foreign_keys="Watchlist.user_id", back_populates="user"
+        "WatchList", foreign_keys="WatchList.user_id", back_populates="user"
     )
 
     def full_name(self):

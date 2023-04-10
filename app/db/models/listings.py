@@ -61,8 +61,8 @@ class Listing(BaseModel):
         "Bid", foreign_keys="Bid.listing_id", back_populates="listing"
     )
     listing_watchlists = relationship(
-        "Watchlist",
-        foreign_keys="Watchlist.listing_id",
+        "WatchList",
+        foreign_keys="WatchList.listing_id",
         back_populates="listing",
     )
 

@@ -14,7 +14,7 @@ ALGORITHM = "HS256"
 
 # generate random string
 def get_random(length):
-    return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 # generate access token based on user's id
