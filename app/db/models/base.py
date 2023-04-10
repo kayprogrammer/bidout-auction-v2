@@ -21,7 +21,7 @@ class File(BaseModel):
 
     resource_type = Column(String)
     user_avatar = relationship(
-        "User", foreign_keys="Brand.avatar_id", back_populates="avatar", uselist=False
+        "User", foreign_keys="User.avatar_id", back_populates="avatar", uselist=False
     )
     listing_image = relationship(
         "Listing",
@@ -29,3 +29,7 @@ class File(BaseModel):
         back_populates="image",
         uselist=False,
     )
+
+
+class UserSession(BaseModel):
+    __tablename__ = "usersessions"

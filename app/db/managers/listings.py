@@ -21,11 +21,12 @@ class CategoryManager(BaseManager[Category]):
         created_slug = slugify(obj_in["name"])
         updated_slug = obj_in.get("slug")
         slug = updated_slug if updated_slug else created_slug
-
-        if self.get_by_slug(db, slug):
+        obj_in["slug"] = slug
+        slug_exists = self.get_by_slug(db, slug)
+        if slug_exists:
             random_str = get_random(4)
             obj_in["slug"] = f"{created_slug}-{random_str}"
-            self.create(db, obj_in)
+            return self.create(db, obj_in)
 
         return super().create(db, obj_in)
 
@@ -45,11 +46,12 @@ class ListingManager(BaseManager[Listing]):
         created_slug = slugify(obj_in["name"])
         updated_slug = obj_in.get("slug")
         slug = updated_slug if updated_slug else created_slug
-
-        if self.get_by_slug(db, slug):
+        obj_in["slug"] = slug
+        slug_exists = self.get_by_slug(db, slug)
+        if slug_exists:
             random_str = get_random(4)
             obj_in["slug"] = f"{created_slug}-{random_str}"
-            self.create(db, obj_in)
+            return self.create(db, obj_in)
 
         return super().create(db, obj_in)
 

@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, validator, Field, constr
 from app.core.database import SessionLocal
 from app.db.managers.accounts import user_manager
 
@@ -15,8 +15,8 @@ def validate_email(email):
 
 
 class RegisterUserSchema(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: str = Field(..., max_length=50)
+    last_name: str = Field(..., max_length=50)
     email: str
     password: str
 

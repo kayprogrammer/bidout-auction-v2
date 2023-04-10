@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.database import Base
+from app.db.models.base import UserSession
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -28,9 +29,9 @@ class BaseManager(Generic[ModelType]):
     def get_by_slug(self, db: Session, slug: str) -> Optional[ModelType]:
         return db.query(self.model).filter_by(slug=slug).first()
 
-    def create(self, db: Session, obj_in: Optional[ModelType]) -> Optional[ModelType]:
-        if not obj_in:
-            return None
+    def create(
+        self, db: Session, obj_in: Optional[ModelType] = {}
+    ) -> Optional[ModelType]:
         obj_in["created_at"] = datetime.utcnow()
         obj_in["updated_at"] = obj_in["created_at"]
         obj = self.model(**obj_in)
@@ -59,6 +60,13 @@ class BaseManager(Generic[ModelType]):
             db.commit()
 
     def delete_by_id(self, db: Session, id: UUID):
-        obj = db.query(self.model).get(id)
+        obj = db.query(self.model).filter_by(id=id).first()
         db.delete(obj)
         db.commit()
+
+
+class UserSessionManager(BaseManager[UserSession]):
+    pass
+
+
+user_session_manager = UserSessionManager(UserSession)
