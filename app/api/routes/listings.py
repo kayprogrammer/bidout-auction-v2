@@ -4,7 +4,6 @@ from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
 from sanic_pydantic import webargs
 from app.api.schemas.listings import (
-    CreateListingSchema,
     CreateBidSchema,
     CreateWatchlistSchema,
     ListingDataSchema,
@@ -12,7 +11,6 @@ from app.api.schemas.listings import (
     ListListingsResponseSchema,
     ListingsQuerySchema,
 )
-from app.api.schemas.base import ResponseSchema
 from app.common.responses import CustomResponse
 from app.db.managers.listings import (
     listing_manager,
@@ -32,7 +30,7 @@ class ListingsView(HTTPMethodView):
         summary="Retrieve all listings",
         description="This endpoint retrieves all listings",
         response=Response(ListListingsResponseSchema),
-        parameter={"name": "quantity", "location": "query"},
+        parameter={"name": "quantity", "location": "query", "schema": int},
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
