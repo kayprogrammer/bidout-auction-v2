@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, validator, Field
 from datetime import datetime
@@ -24,7 +24,7 @@ class CreateListingSchema(BaseModel):
 
 
 class CreateWatchlistSchema(BaseModel):
-    listing_slug: str
+    slug: str
 
 
 class CreateBidSchema(BaseModel):
@@ -71,3 +71,11 @@ class ListingDataSchema(BaseModel):
 
 class ListingsResponseSchema(ResponseSchema):
     data: ListingDataSchema
+
+
+class ListListingsResponseSchema(ResponseSchema):
+    data: List[ListingDataSchema]
+
+
+class ListingsQuerySchema(BaseModel):
+    quantity: Optional[int]
