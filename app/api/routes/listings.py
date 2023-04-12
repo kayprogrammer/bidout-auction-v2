@@ -4,12 +4,15 @@ from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
 from sanic_pydantic import webargs
 from app.api.schemas.listings import (
-    CreateBidSchema,
     CreateWatchlistSchema,
     ListingDataSchema,
     ListingsResponseSchema,
-    ListListingsResponseSchema,
+    ListingsListResponseSchema,
     ListingsQuerySchema,
+    CreateBidSchema,
+    BidDataSchema,
+    BidsListResponseSchema,
+    BidsResponseSchema,
 )
 from app.common.responses import CustomResponse
 from app.db.managers.listings import (
@@ -29,7 +32,7 @@ class ListingsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings",
         description="This endpoint retrieves all listings",
-        response=Response(ListListingsResponseSchema),
+        response=Response(ListingsListResponseSchema),
         parameter={"name": "quantity", "location": "query", "schema": int},
     )
     async def get(self, request, **kwargs):
@@ -64,7 +67,7 @@ class ListingsByWatchListView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by users watchlist",
         description="This endpoint retrieves all listings",
-        response=Response(ListingsResponseSchema),
+        response=Response(ListingsListResponseSchema),
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -105,7 +108,7 @@ class ListingsByCategoryView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by category",
         description="This endpoint retrieves all listings in a particular category. Use slug 'other' for category other",
-        response=Response(ListingsResponseSchema),
+        response=Response(ListingsListResponseSchema),
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -121,7 +124,67 @@ class ListingsByCategoryView(HTTPMethodView):
         return CustomResponse.success(message="Category Listings fetched", data=data)
 
 
+class BidsView(HTTPMethodView):
+    @openapi.definition(
+        summary="Retrieve all bids in a listing",
+        description="This endpoint retrieves all bids in a particular listing.",
+        response=Response(BidsListResponseSchema),
+    )
+    async def get(self, request, **kwargs):
+        slug = kwargs.get("slug")
+        db = request.ctx.db
+        listing = listing_manager.get_by_slug(db, slug)
+        if not listing:
+            return CustomResponse.error("Listing does not exist!", status_code=404)
+
+        bids = bid_manager.get_by_listing_id(db, listing.id)
+        data = [BidDataSchema.from_orm(bid).dict() for bid in bids]
+        return CustomResponse.success(message="Listing Bids fetched", data=data)
+
+    @openapi.definition(
+        body=RequestBody(CreateBidSchema, required=True),
+        summary="Add a bid to a listing",
+        description="This endpoint adds a bid to a particular listing.",
+        response=Response(BidsResponseSchema),
+    )
+    async def post(self, request, **kwargs):
+        slug = kwargs.get("slug")
+        data = request.json
+        db = request.ctx.db
+        user = request.ctx.user
+
+        listing = listing_manager.get_by_slug(db, slug)
+        if not listing:
+            return CustomResponse.error("Listing does not exist!", status_code=404)
+
+        amount = data["amount"]
+        if user.id == listing.auctioneer_id:
+            return CustomResponse.error(
+                "You cannot bid your own product!", status_code=403
+            )
+        elif not listing.active:
+            return CustomResponse.error("This auction is closed!", status_code=410)
+        elif listing.time_left_seconds():
+            return CustomResponse.error(
+                "This auction is expired and closed!", status_code=410
+            )
+        elif amount < listing.price:
+            return CustomResponse.error(
+                "Bid amount cannot be less than the bidding price!"
+            )
+        elif amount <= listing.get_highest_bid():
+            return CustomResponse.error("Bid amount must be more than the highest bid!")
+
+        bid = bid_manager.create(
+            db, {"user_id": user.id, "listing_id": listing.id, "amount": amount}
+        )
+
+        data = BidDataSchema.from_orm(bid).dict()
+        return CustomResponse.success(message="Bid added to listing", data=data)
+
+
 listings_router.add_route(ListingsView.as_view(), "/")
 listings_router.add_route(ListingDetailView.as_view(), "/<slug>")
 listings_router.add_route(ListingsByWatchListView.as_view(), "/watchlist")
 listings_router.add_route(ListingsByCategoryView.as_view(), "/category/<slug>")
+listings_router.add_route(BidsView.as_view(), "/<slug>/bids")

@@ -83,6 +83,31 @@ class BidManager(BaseManager[Bid]):
         bids = db.query(self.model).filter_by(user_id=user_id).all()
         return bids
 
+    def get_by_listing_id(self, db: Session, listing_id: UUID) -> Optional[List[Bid]]:
+        bids = db.query(self.model).filter_by(listing_id=listing_id).all()
+        return bids
+
+    def get_by_user_and_listing_id(
+        self, db: Session, user_id: UUID, listing_id: UUID
+    ) -> Optional[List[Bid]]:
+        bid = (
+            db.query(self.model)
+            .filter_by(user_id=user_id, listing_id=listing_id)
+            .first()
+        )
+        return bid
+
+    def create(self, db: Session, obj_in: dict):
+        user_id = obj_in["user_id"]
+        listing_id = obj_in["listing_id"]
+
+        existing_bid = bid_manager.get_by_user_and_listing_id(db, user_id, listing_id)
+        if existing_bid:
+            obj_in.pop("user_id", None)
+            obj_in.pop("listing_id", None)
+            return self.update(db, existing_bid, obj_in)
+        return super().create(db, obj_in)
+
 
 # How to use
 category_manager = CategoryManager(Category)

@@ -6,7 +6,11 @@ from decimal import Decimal
 from uuid import UUID
 from .base import ResponseSchema
 from app.db.managers.listings import listing_manager, category_manager
+from app.db.managers.accounts import user_manager
+
 from app.core.database import SessionLocal
+
+# LISTINGS
 
 
 class CreateListingSchema(BaseModel):
@@ -25,11 +29,6 @@ class CreateListingSchema(BaseModel):
 
 class CreateWatchlistSchema(BaseModel):
     slug: str
-
-
-class CreateBidSchema(BaseModel):
-    listing_slug: str
-    amount: Decimal = Field(ge=0.01, decimal_places=2)
 
 
 class ListingDataSchema(BaseModel):
@@ -73,9 +72,45 @@ class ListingsResponseSchema(ResponseSchema):
     data: ListingDataSchema
 
 
-class ListListingsResponseSchema(ResponseSchema):
+class ListingsListResponseSchema(ResponseSchema):
     data: List[ListingDataSchema]
 
 
 class ListingsQuerySchema(BaseModel):
     quantity: Optional[int]
+
+
+# ------------------------------------------------------ #
+
+
+# BIDS #
+class CreateBidSchema(BaseModel):
+    amount: int
+
+
+class BidDataSchema(BaseModel):
+    user: dict = {}
+    user_id: UUID
+    amount: int
+    created_at: datetime
+    updated_at: datetime
+
+    @validator("user", pre=True)
+    def show_user(cls, v, values):
+        db = SessionLocal()
+        user_id = values.get("user_id")
+        user = user_manager.get_by_id(db, user_id)
+        values.pop("user_id", None)
+        db.close()
+        return {"name": user.full_name(), "avatar": ""} if user else None
+
+
+class BidsResponseSchema(ResponseSchema):
+    data: BidDataSchema
+
+
+class BidsListResponseSchema(ResponseSchema):
+    data: List[BidDataSchema]
+
+
+# -------------------------------------------- #
