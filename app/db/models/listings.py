@@ -6,6 +6,7 @@ from sqlalchemy import (
     String,
     Text,
     Numeric,
+    Integer,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -50,6 +51,8 @@ class Listing(BaseModel):
     price = Column(Numeric(precision=10, scale=2))
     closing_date = Column(DateTime, nullable=True)
     active = Column(Boolean, default=True)
+    bids_count = Column(Integer, default=0)
+
     image_id = Column(
         UUID(as_uuid=True), ForeignKey("files.id", ondelete="CASCADE"), unique=True
     )

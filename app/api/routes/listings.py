@@ -7,12 +7,12 @@ from app.api.schemas.listings import (
     CreateWatchlistSchema,
     ListingDataSchema,
     ListingsResponseSchema,
-    ListingsListResponseSchema,
-    ListingsQuerySchema,
+    ListingResponseSchema,
+    ListingQuerySchema,
     CreateBidSchema,
     BidDataSchema,
-    BidsListResponseSchema,
     BidsResponseSchema,
+    BidResponseSchema,
 )
 from app.common.responses import CustomResponse
 from app.db.managers.listings import (
@@ -27,12 +27,12 @@ listings_router = Blueprint("listings", url_prefix="/api/v2/listings")
 
 
 class ListingsView(HTTPMethodView):
-    decorators = [webargs(query=ListingsQuerySchema)]
+    decorators = [webargs(query=ListingQuerySchema)]
 
     @openapi.definition(
         summary="Retrieve all listings",
         description="This endpoint retrieves all listings",
-        response=Response(ListingsListResponseSchema),
+        response=Response(ListingsResponseSchema),
         parameter={"name": "quantity", "location": "query", "schema": int},
     )
     async def get(self, request, **kwargs):
@@ -50,7 +50,7 @@ class ListingDetailView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve listing's detail",
         description="This endpoint retrieves detail of a listing",
-        response=Response(ListingsResponseSchema),
+        response=Response(ListingResponseSchema),
     )
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
@@ -67,7 +67,7 @@ class ListingsByWatchListView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by users watchlist",
         description="This endpoint retrieves all listings",
-        response=Response(ListingsListResponseSchema),
+        response=Response(ListingsResponseSchema),
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -83,7 +83,7 @@ class ListingsByWatchListView(HTTPMethodView):
         body=RequestBody(CreateWatchlistSchema, required=True),
         summary="Add a listing to a users watchlist",
         description="This endpoint adds a listing to a user's watchlist, authenticated or not.",
-        response=Response(ListingsResponseSchema),
+        response=Response(ListingResponseSchema),
     )
     async def post(self, request, **kwargs):
         data = request.json
@@ -101,14 +101,16 @@ class ListingsByWatchListView(HTTPMethodView):
 
         watchlist = watchlist_manager.create(db, data_entry)
         data = ListingDataSchema.from_orm(watchlist.listing).dict()
-        return CustomResponse.success(message="Listing added to Watchlists", data=data)
+        return CustomResponse.success(
+            message="Listing added to Watchlists", data=data, status_code=201
+        )
 
 
 class ListingsByCategoryView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by category",
         description="This endpoint retrieves all listings in a particular category. Use slug 'other' for category other",
-        response=Response(ListingsListResponseSchema),
+        response=Response(ListingsResponseSchema),
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -128,7 +130,7 @@ class BidsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all bids in a listing",
         description="This endpoint retrieves all bids in a particular listing.",
-        response=Response(BidsListResponseSchema),
+        response=Response(BidsResponseSchema),
     )
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
@@ -145,7 +147,7 @@ class BidsView(HTTPMethodView):
         body=RequestBody(CreateBidSchema, required=True),
         summary="Add a bid to a listing",
         description="This endpoint adds a bid to a particular listing.",
-        response=Response(BidsResponseSchema),
+        response=Response(BidResponseSchema),
     )
     async def post(self, request, **kwargs):
         slug = kwargs.get("slug")
@@ -180,7 +182,9 @@ class BidsView(HTTPMethodView):
         )
 
         data = BidDataSchema.from_orm(bid).dict()
-        return CustomResponse.success(message="Bid added to listing", data=data)
+        return CustomResponse.success(
+            message="Bid added to listing", data=data, status_code=201
+        )
 
 
 listings_router.add_route(ListingsView.as_view(), "/")

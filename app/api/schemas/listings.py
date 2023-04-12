@@ -13,20 +13,6 @@ from app.core.database import SessionLocal
 # LISTINGS
 
 
-class CreateListingSchema(BaseModel):
-    name: str = Field(..., max_length=50)
-    desc: str
-    category_slug: Optional[str]
-    price: int
-    closing_date: datetime
-
-    @validator("closing_date")
-    def validate_closing_date(cls, v):
-        if datetime.utcnow() > v:
-            raise ValueError("Closing date must be beyond the current datetime!")
-        return v
-
-
 class CreateWatchlistSchema(BaseModel):
     slug: str
 
@@ -44,6 +30,7 @@ class ListingDataSchema(BaseModel):
     price: int
     closing_date: datetime
     active: bool
+    bids_count: int
     # image: str
 
     @validator("auctioneer", pre=True)
@@ -68,15 +55,15 @@ class ListingDataSchema(BaseModel):
         orm_mode = True
 
 
-class ListingsResponseSchema(ResponseSchema):
+class ListingResponseSchema(ResponseSchema):
     data: ListingDataSchema
 
 
-class ListingsListResponseSchema(ResponseSchema):
+class ListingsResponseSchema(ResponseSchema):
     data: List[ListingDataSchema]
 
 
-class ListingsQuerySchema(BaseModel):
+class ListingQuerySchema(BaseModel):
     quantity: Optional[int]
 
 
@@ -89,6 +76,7 @@ class CreateBidSchema(BaseModel):
 
 
 class BidDataSchema(BaseModel):
+    id: UUID
     user: dict = {}
     user_id: UUID
     amount: int
@@ -105,11 +93,11 @@ class BidDataSchema(BaseModel):
         return {"name": user.full_name(), "avatar": ""} if user else None
 
 
-class BidsResponseSchema(ResponseSchema):
+class BidResponseSchema(ResponseSchema):
     data: BidDataSchema
 
 
-class BidsListResponseSchema(ResponseSchema):
+class BidsResponseSchema(ResponseSchema):
     data: List[BidDataSchema]
 
 

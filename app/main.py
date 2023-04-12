@@ -5,6 +5,8 @@ from sanic_ext import Config, openapi
 from app.core.database import inject_db_session, close_db_session
 from app.api.routes.auth import auth_router
 from app.api.routes.listings import listings_router
+from app.api.routes.auctioneer import auctioneer_router
+
 
 from app.core.config import settings
 from app.common.exception_handlers import (
@@ -61,6 +63,7 @@ def create_app() -> Sanic:
     # REGISTER BLUEPRINTS
     app.blueprint(auth_router)
     app.blueprint(listings_router)
+    app.blueprint(auctioneer_router)
 
     # TEMPLATES CONFIG FOR EMAILS
     app.ctx.template_env = env
