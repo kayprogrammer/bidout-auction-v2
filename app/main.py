@@ -20,6 +20,7 @@ from app.common.middlewares import (
 )
 
 from jinja2 import Environment, PackageLoader
+import cloudinary
 
 env = Environment(loader=PackageLoader("app", "templates"))
 
@@ -68,7 +69,15 @@ def create_app() -> Sanic:
     # TEMPLATES CONFIG FOR EMAILS
     app.ctx.template_env = env
 
-    # EXTR CONFIGS
+    # FILES CONFIG WITH CLOUDINARY
+    cloudinary.config(
+        cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
+    )
+    app.ctx.cloudinary = cloudinary
+
+    # EXTRA CONFIGS
     app.config.SECRET = settings.SECRET_KEY
     app.config.CORS_ORIGINS = settings.CORS_ALLOWED_ORIGINS
     return app

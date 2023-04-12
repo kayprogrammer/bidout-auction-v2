@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.database import Base
-from app.db.models.base import UserSession
+from app.db.models.base import File, UserSession
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -65,8 +65,13 @@ class BaseManager(Generic[ModelType]):
         db.commit()
 
 
+class FileManager(BaseManager[File]):
+    pass
+
+
 class UserSessionManager(BaseManager[UserSession]):
     pass
 
 
+file_manager = FileManager(File)
 user_session_manager = UserSessionManager(UserSession)

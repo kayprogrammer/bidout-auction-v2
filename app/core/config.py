@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     MAIL_SENDER_HOST: str
     MAIL_SENDER_PORT: int
 
+    # CLOUDINARY CONFIG
+    CLOUDINARY_CLOUD_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
+
     @validator("SQLALCHEMY_DATABASE_URL", pre=True)
     def assemble_postgres_connection(
         cls, v: Optional[str], values: Dict[str, str]
