@@ -1,6 +1,6 @@
 # BidOut Auction V2 (WORK IN PROGRESS)
 
-![alt text](https://github.com/kayprogrammer/bidout-auction-v1/blob/main/display/sanic.png?raw=true)
+![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/sanic.png?raw=true)
 
 
 #### Sanic Docs: [Documentation](https://docs.djangoproject.com/en/4.2/)
@@ -39,10 +39,10 @@ OR
     $ make build
 ```
 
-![alt text](https://github.com/kayprogrammer/bidout-auction-v1/blob/main/display/display1.png?raw=true)
+![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display1.png?raw=true)
 
-![alt text](https://github.com/kayprogrammer/bidout-auction-v1/blob/main/display/display2.png?raw=true)
+![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display2.png?raw=true)
 
-![alt text](https://github.com/kayprogrammer/bidout-auction-v1/blob/main/display/display3.png?raw=true)
+![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display3.png?raw=true)
 
-![alt text](https://github.com/kayprogrammer/bidout-auction-v1/blob/main/display/display4.png?raw=true)
+![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display4.png?raw=true)
