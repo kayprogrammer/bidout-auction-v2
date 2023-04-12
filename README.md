@@ -3,9 +3,9 @@
 ![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/sanic.png?raw=true)
 
 
-#### Sanic Docs: [Documentation](https://docs.djangoproject.com/en/4.2/)
+#### Sanic Docs: [Documentation](https://sanic.dev)
 
-#### PG ADMIN: [pgadmin.org](https://sanic.dev) 
+#### PG ADMIN: [Documentation](https://pgadmin.org) 
 
 
 ## How to run locally
@@ -40,7 +40,7 @@ OR
 ```
 
 ## Docs
-#### Swagger: [pgadmin.org](https://swagger.io/docs/) 
+#### Swagger: [Documentation](https://swagger.io/docs/) 
 
 ![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display1.png?raw=true)
 
