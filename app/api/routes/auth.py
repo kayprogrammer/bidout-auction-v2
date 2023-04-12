@@ -24,7 +24,7 @@ from app.api.utils.tokens import (
 )
 from app.api.utils.decorators import authorized
 
-auth_router = Blueprint("auth", url_prefix="/api/v2/auth")
+auth_router = Blueprint("Auth", url_prefix="/api/v2/auth")
 
 
 class RegisterView(HTTPMethodView):

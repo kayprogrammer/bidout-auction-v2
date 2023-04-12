@@ -23,7 +23,7 @@ from app.db.managers.listings import (
 )
 from app.api.utils.decorators import authorized
 
-listings_router = Blueprint("listings", url_prefix="/api/v2/listings")
+listings_router = Blueprint("Listings", url_prefix="/api/v2/listings")
 
 
 class ListingsView(HTTPMethodView):

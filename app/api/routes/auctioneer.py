@@ -28,7 +28,7 @@ from app.db.managers.listings import (
 from app.db.managers.accounts import user_manager
 from app.api.utils.decorators import authorized
 
-auctioneer_router = Blueprint("auctioneer", url_prefix="/api/v2/auctioneer")
+auctioneer_router = Blueprint("Auctioneer", url_prefix="/api/v2/auctioneer")
 
 
 class AuctioneerListingsView(HTTPMethodView):
