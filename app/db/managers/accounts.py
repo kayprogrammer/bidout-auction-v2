@@ -13,14 +13,12 @@ class UserManager(BaseManager[User]):
         return user
 
     def create(self, db: Session, obj_in) -> User:
+        # hash the password
         obj_in.update({"password": get_password_hash(obj_in["password"])})
-        user_obj = self.model(**obj_in)
-        db.add(user_obj)
-        db.commit()
-        db.refresh(user_obj)
-        return user_obj
+        return super().create(db, obj_in)
 
     def update(self, db: Session, db_obj, obj_in) -> Optional[User]:
+        # hash the password
         password = obj_in.get("password")
         if password:
             obj_in["password"] = get_password_hash(password)

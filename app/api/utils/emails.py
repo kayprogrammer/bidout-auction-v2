@@ -7,6 +7,7 @@ import random
 
 
 def generate_otp(db, user):
+    # Generate 6 digit otp
     code = random.randint(100000, 999999)
     otp = otp_manager.get_by_user_id(db, user.id)
     if otp:
@@ -21,6 +22,8 @@ def sort_email(db, user, type):
     subject = "Account verified"
 
     data = {"template": template, "subject": subject}
+
+    # Sort different templates and subject for respective email types
     if type == "activate":
         template = "email-activation.html"
         subject = "Activate your account"

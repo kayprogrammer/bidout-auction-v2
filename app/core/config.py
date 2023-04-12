@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     def assemble_postgres_connection(
         cls, v: Optional[str], values: Dict[str, str]
     ) -> str:
+        # Assemble postgres url
         if isinstance(v, str):
             return v
         if values.get("DEBUG"):

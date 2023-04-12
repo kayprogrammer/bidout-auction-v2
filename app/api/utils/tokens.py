@@ -17,7 +17,7 @@ def get_random(length):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
-# generate access token based on user's id
+# generate access token based and encode user's id
 def create_access_token(payload: dict):
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"exp": expire, **payload}
@@ -59,7 +59,9 @@ def decodeJWT(db, token):
         user = user_manager.get_by_id(db, decoded["user_id"])
         if user:
             jwt_obj = jwt_manager.get_by_user_id(db, user.id)
-            if not jwt_obj:  # to confirm the validity of the token
+            if (
+                not jwt_obj
+            ):  # to confirm the validity of the token (it's existence in our database)
                 return None
             return user
         return None

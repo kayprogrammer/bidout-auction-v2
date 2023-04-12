@@ -59,7 +59,6 @@ class VerifyEmailView(HTTPMethodView):
         response=Response(ResponseSchema),
     )
     async def post(self, request, **kwargs):
-        print(request.ctx.session)
         db = request.ctx.db
         data = request.json
         user_by_email = user_manager.get_by_email(db, data["email"])
@@ -172,7 +171,6 @@ class SetNewPasswordView(HTTPMethodView):
         response=Response(ResponseSchema),
     )
     async def post(self, request, **kwargs):
-        print(request.headers)
         db = request.ctx.db
         email = request.cookies.get("email")
         if not email:

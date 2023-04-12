@@ -4,6 +4,8 @@ from sanic.response import json
 class CustomResponse:
     @staticmethod
     def success(message, data=None, status_code=200):
+        # returns a custom success response
+
         response = {
             "status": "success",
             "message": message,
@@ -15,6 +17,8 @@ class CustomResponse:
 
     @staticmethod
     def error(message, data=None, status_code=400):
+        # returns a custom error response
+
         response = {
             "status": "failure",
             "message": message,

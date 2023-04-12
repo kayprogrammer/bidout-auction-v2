@@ -5,10 +5,12 @@ import smtplib
 
 class EmailThread(threading.Thread):
     def __init__(self, message):
+        # Initialize values
         self.message = message
         threading.Thread.__init__(self)
 
     def run(self):
+        # Run in background
         message = self.message
         with smtplib.SMTP_SSL(
             host=settings.MAIL_SENDER_HOST, port=settings.MAIL_SENDER_PORT

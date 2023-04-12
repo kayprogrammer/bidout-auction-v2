@@ -18,9 +18,11 @@ class CategoryManager(BaseManager[Category]):
         return category
 
     def create(self, db: Session, obj_in) -> Optional[Category]:
+        # Generate unique slug
         created_slug = slugify(obj_in["name"])
         updated_slug = obj_in.get("slug")
         slug = updated_slug if updated_slug else created_slug
+
         obj_in["slug"] = slug
         slug_exists = self.get_by_slug(db, slug)
         if slug_exists:
@@ -53,6 +55,8 @@ class ListingManager(BaseManager[Listing]):
         return listings
 
     def create(self, db: Session, obj_in) -> Optional[Listing]:
+        # Generate unique slug
+
         created_slug = slugify(obj_in["name"])
         updated_slug = obj_in.get("slug")
         slug = updated_slug if updated_slug else created_slug

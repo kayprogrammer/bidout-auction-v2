@@ -41,6 +41,7 @@ class ListingsView(HTTPMethodView):
         quantity = int(quantity) if quantity else None
         listings = listing_manager.get_all(db)
         if quantity:
+            # Retrieve based on amount
             listings = listings[:quantity]
         data = [ListingDataSchema.from_orm(listing).dict() for listing in listings]
         return CustomResponse.success(message="Listings fetched", data=data)
@@ -96,6 +97,7 @@ class ListingsByWatchListView(HTTPMethodView):
 
         data_entry = {"session_key": user, "listing_id": listing.id}
         if hasattr(user, "email"):
+            # Here we know its a user object and not a session key string, now we can retrieve id.
             data_entry["user_id"] = user.id
             del data_entry["session_key"]
 
@@ -115,6 +117,7 @@ class ListingsByCategoryView(HTTPMethodView):
     async def get(self, request, **kwargs):
         db = request.ctx.db
         slug = kwargs.get("slug")
+        # listings with category 'other' have category column as null
         category = None
         if slug != "other":
             category = category_manager.get_by_slug(db, slug)

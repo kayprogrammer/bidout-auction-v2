@@ -26,16 +26,20 @@ def add_cors_headers(request, response):
 
 class RequestUserObject(object):
     def __init__(self, user, is_authenticated=False):
+        # initialize values
         self.user = user
         self.is_authenticated = is_authenticated
 
     def __str__(self):
+        # Return name if it's a user object, otherwise return the session_key
         user = self.user
         if isinstance(user, User):
             user = user.full_name()
         return user
 
     def __getattr__(self, attr):
+        # Ensure that is_authenticated attribute returns directly from the object even if
+        # its not a column of the user model object (Just like Django).
         if attr == "is_authenticated":
             return self.is_authenticated
         else:
@@ -43,12 +47,15 @@ class RequestUserObject(object):
 
 
 def inject_current_user(request):
+    # Inject current user to the request context.
     db = request.ctx.db
     token = request.headers.get("Authorization", None)
     is_authorized = decodeJWT(db, token)
     if is_authorized:
+        # Let the user context object contain the user model object
         request.ctx.user = RequestUserObject(user=is_authorized, is_authenticated=True)
     else:
+        # Let the user context object contain a session key
         session_key = request.cookies.get("session_key")
         if not session_key:
             session_key_obj = user_session_manager.create(db)
@@ -57,6 +64,9 @@ def inject_current_user(request):
 
 
 def inject_or_remove_session_key(request, response):
+    # Add or remoe session key to cookies based on authorization status.
+    # This cannot be done in the inject_current_user because cookies are added via responses.
+
     db = request.ctx.db
     if request.ctx.user.is_authenticated:
         session_key = request.cookies.get("session_key")

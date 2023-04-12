@@ -46,7 +46,9 @@ class AuctioneerListingsView(HTTPMethodView):
         quantity = request.args.get("quantity")
         quantity = int(quantity) if quantity else None
         listings = listing_manager.get_by_auctioneer_id(db, user.id)
+
         if quantity:
+            # Retrieve based on amount
             listings = listings[:quantity]
         data = [ListingDataSchema.from_orm(listing).dict() for listing in listings]
         return CustomResponse.success(message="Auctioneer Listings fetched", data=data)
@@ -111,10 +113,12 @@ class AuctioneerListingBidsView(HTTPMethodView):
         db = request.ctx.db
         user = request.ctx.user
 
+        # Get listing by slug
         listing = listing_manager.get_by_slug(db, slug)
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
 
+        # Ensure the current user is the listing's owner
         if user.id != listing.auctioneer_id:
             return CustomResponse.error("This listing doesn't belong to you!")
 
