@@ -14,6 +14,8 @@ from app.api.schemas.listings import (
 
 from app.api.schemas.auctioneer import (
     CreateListingSchema,
+    CreateListingResponseSchema,
+    CreateListingResponseDataSchema,
     UpdateProfileSchema,
     UpdateProfileResponseDataSchema,
     UpdateProfileResponseSchema,
@@ -22,17 +24,22 @@ from app.api.schemas.auctioneer import (
 )
 from app.common.responses import CustomResponse
 from app.db.managers.listings import (
+    category_manager,
     listing_manager,
     bid_manager,
 )
 from app.db.managers.accounts import user_manager
+from app.db.managers.base import file_manager
 from app.api.utils.decorators import authorized
 
 auctioneer_router = Blueprint("Auctioneer", url_prefix="/api/v2/auctioneer")
 
 
 class AuctioneerListingsView(HTTPMethodView):
-    decorators = [authorized(), webargs(query=ListingQuerySchema)]
+    decorators = [
+        authorized(),
+        webargs(query=ListingQuerySchema, body=CreateListingSchema),
+    ]
 
     @openapi.definition(
         summary="Retrieve all listings by the current user",
@@ -54,22 +61,42 @@ class AuctioneerListingsView(HTTPMethodView):
         return CustomResponse.success(message="Auctioneer Listings fetched", data=data)
 
     @openapi.definition(
-        body=RequestBody(CreateListingSchema, required=True),
+        body=CreateListingSchema,
         summary="Create a listing",
-        description="This endpoint creates a new listing. Note: use the returned upload_url to upload image to cloudinary",
-        response=Response(ListingResponseSchema),
+        description="This endpoint creates a new listing. Note: Use the returned upload_url to upload image to cloudinary",
+        response=Response(CreateListingResponseSchema),
     )
     async def post(self, request, **kwargs):
         data = request.json
         db = request.ctx.db
         user = request.ctx.user
+        category = data.get("category")
 
-        data.update({"auctioneer_id": user.id})
+        if category:
+            category = category_manager.get_by_slug(db, category)
+            if not category:
+                # Return a data validation error
+                return CustomResponse.error(
+                    message="Invalid entry",
+                    data={"category": "Invalid category"},
+                    status_code=422,
+                )
+
+        data.update(
+            {"auctioneer_id": user.id, "category_id": category.id if category else None}
+        )
+        data.pop("category", None)
+
+        # Create file object
+        file = file_manager.create(db, {"resource_type": data["file_type"]})
+        data.update({"image_id": file.id})
+        data.pop("file_type")
 
         listing = listing_manager.create(db, data)
-        data = ListingDataSchema.from_orm(listing).dict()
+        data = CreateListingResponseDataSchema.from_orm(listing).dict()
+        print(data)
         return CustomResponse.success(
-            message="Listing created successfully", data=data, status_code=201
+            message="Listing created successfully", status_code=201
         )
 
 
@@ -80,13 +107,14 @@ class UpdateListingView(HTTPMethodView):
         body=RequestBody(CreateListingSchema, required=True),
         summary="Update a listing",
         description="This endpoint update a particular listing.",
-        response=Response(ListingResponseSchema),
+        response=Response(CreateListingResponseSchema),
     )
     async def put(self, request, **kwargs):
         data = request.json
         db = request.ctx.db
         user = request.ctx.user
         slug = kwargs.get("slug")
+        category = data.get("category")
 
         listing = listing_manager.get_by_slug(db, slug)
         if not listing:
@@ -95,8 +123,27 @@ class UpdateListingView(HTTPMethodView):
         if user.id != listing.auctioneer_id:
             return CustomResponse.error("This listing doesn't belong to you!")
 
+        if category:
+            category = category_manager.get_by_slug(db, category)
+            if not category:
+                # Return a data validation error
+                return CustomResponse.error(
+                    message="Invalid entry",
+                    data={"category": "Invalid category"},
+                    status_code=422,
+                )
+
+        data.update({"category_id": category.id if category else None})
+        data.pop("category", None)
+
+        # Create file object
+        file_manager.delete(db, listing.image)
+        file = file_manager.create(db, {"resource_type": data["file_type"]})
+        data.update({"image_id": file.id})
+        data.pop("file_type")
+
         listing = listing_manager.update(db, listing, data)
-        data = ListingDataSchema.from_orm(listing).dict()
+        data = CreateListingResponseDataSchema.from_orm(listing).dict()
         return CustomResponse.success(
             message="Listing created successfully", data=data, status_code=201
         )
@@ -152,6 +199,11 @@ class ProfileView(HTTPMethodView):
         data = request.json
         db = request.ctx.db
         user = request.ctx.user
+
+        # Create file object
+        file = file_manager.create(db, {"resource_type": data["file_type"]})
+        data.pop("file_type")
+        data.update({"avatar_id": file.id})
 
         user = user_manager.update(db, user, data)
         data = UpdateProfileResponseDataSchema.from_orm(user).dict()

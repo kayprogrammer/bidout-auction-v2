@@ -1,19 +1,24 @@
-from sanic import Sanic
-from app.core.config import settings
 from app.common.responses import CustomResponse
+from app.core.config import settings
 import mimetypes
 import time
+import cloudinary
 
-app = Sanic.get_app()
-cloudinary = app.ctx.cloudinary
 BASE_FOLDER = "bidout-auction-v2/"
+
+# FILES CONFIG WITH CLOUDINARY
+cloudinary.config(
+    cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+    api_key=settings.CLOUDINARY_API_KEY,
+    api_secret=settings.CLOUDINARY_API_SECRET,
+)
 
 
 class FileProcessor:
     @staticmethod
     def generate_file_url(key, folder, content_type):
         file_extension = mimetypes.guess_extension(content_type)
-        key = f"{BASE_FOLDER}{folder}{key}{file_extension}"
+        key = f"{BASE_FOLDER}{folder}/{key}{file_extension}"
         params = {
             "public_id": key,
             "timestamp": str(int(time.time())),

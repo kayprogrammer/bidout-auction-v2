@@ -1,28 +1,22 @@
-import re
-from typing import Optional
-
-from pydantic import BaseModel, validator, Field, constr
+from pydantic import BaseModel, validator, Field, EmailStr
 from app.core.database import SessionLocal
 from app.db.managers.accounts import user_manager
 
 
-def validate_email(email):
-    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    email_valid = bool(re.match(pattern, email))
-    if not email_valid:
-        raise ValueError("Invalid email!")
-    return email
-
-
 class RegisterUserSchema(BaseModel):
-    first_name: str = Field(..., max_length=50)
-    last_name: str = Field(..., max_length=50)
-    email: str
-    password: str
+    first_name: str = Field("John", max_length=50)
+    last_name: str = Field("Doe", max_length=50)
+    email: EmailStr = Field("johndoe@example.com")
+    password: str = Field("strongpassword", min_length=8)
+
+    @validator("first_name", "last_name")
+    def validate_name(cls, v):
+        if len(v.split(" ")) > 1:
+            raise ValueError("No spacing allowed")
+        return v
 
     @validator("email")
     def validate_email(cls, v):
-        validate_email(v)
         db = SessionLocal()
         existing_user = user_manager.get_by_email(db, v)
         if existing_user:
@@ -31,43 +25,34 @@ class RegisterUserSchema(BaseModel):
         db.close()
         return v
 
-    @validator("password")
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError("Password must contain at least 8 characters")
-        return v
+    class Config:
+        error_msg_templates = {
+            "value_error.any_str.max_length": "50 characters max!",
+            "value_error.any_str.min_length": "8 characters min!",
+        }
 
 
 class VerifyOtpSchema(BaseModel):
-    email: str
+    email: EmailStr = Field("johndoe@example.com")
     otp: int
-
-    @validator("email")
-    def validate_email(cls, v):
-        return validate_email(v)
 
 
 class RequestOtpSchema(BaseModel):
-    email: str
-
-    @validator("email")
-    def validate_email(cls, v):
-        return validate_email(v)
+    email: EmailStr = Field("johndoe@example.com")
 
 
 class SetNewPasswordSchema(BaseModel):
-    password: str
+    password: str = Field("newstrongpassword", min_length=8)
 
-    @validator("password")
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError("Password must contain at least 8 characters")
-        return v
+    class Config:
+        error_msg_templates = {
+            "value_error.any_str.min_length": "8 characters min!",
+        }
 
 
 class LoginUserSchema(BaseModel):
-    email: str
-    password: str
+    email: EmailStr = Field("johndoe@example.com")
+    password: str = Field("password")
 
 
 class RefreshTokensSchema(BaseModel):

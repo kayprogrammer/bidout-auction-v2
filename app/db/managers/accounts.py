@@ -22,7 +22,6 @@ class UserManager(BaseManager[User]):
         password = obj_in.get("password")
         if password:
             obj_in["password"] = get_password_hash(password)
-
         return super().update(db, db_obj, obj_in)
 
 
