@@ -39,7 +39,6 @@ class ListingsView(HTTPMethodView):
         if quantity:
             # Retrieve based on amount
             listings = listings[:quantity]
-        # category_manager.create(db, {"name": "Fashion"})
         data = [ListingDataSchema.from_orm(listing).dict() for listing in listings]
         return CustomResponse.success(message="Listings fetched", data=data)
 
