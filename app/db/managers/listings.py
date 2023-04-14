@@ -70,25 +70,42 @@ class ListingManager(BaseManager[Listing]):
 
         return super().create(db, obj_in)
 
+    def update(self, db: Session, db_obj: Listing, obj_in) -> Optional[Listing]:
+        # Generate unique slug
+
+        created_slug = slugify(obj_in["name"])
+        updated_slug = obj_in.get("slug")
+        slug = updated_slug if updated_slug else created_slug
+        obj_in["slug"] = slug
+        slug_exists = self.get_by_slug(db, slug)
+        if slug_exists and not slug == db_obj.slug:
+            random_str = get_random(4)
+            obj_in["slug"] = f"{created_slug}-{random_str}"
+            return self.update(db, db_obj, obj_in)
+
+        return super().update(db, db_obj, obj_in)
+
 
 class WatchListManager(BaseManager[WatchList]):
     def get_by_user_id_or_session_key(
-        self, db: Session, id: str
+        self, db: Session, id: UUID
     ) -> Optional[List[WatchList]]:
+        print(type(id))
         watchlist = (
             db.query(self.model)
-            .filter(or_(self.model.user_id == id, self.model.session_key == id))
+            .filter(or_(self.model.user_id == id, self.model.session_key == str(id)))
             .all()
         )
         return watchlist
 
     def get_by_user_id_or_session_key_and_listing_id(
-        self, db: Session, id: str, listing_id: str
+        self, db: Session, id: UUID, listing_id: UUID
     ) -> Optional[List[WatchList]]:
         watchlist = (
             db.query(self.model)
-            .filter(or_(self.model.user_id == id, self.model.session_key == id))
+            .filter(or_(self.model.user_id == id, self.model.session_key == str(id)))
             .filter(self.model.listing_id == listing_id)
+            .first()
         )
         return watchlist
 

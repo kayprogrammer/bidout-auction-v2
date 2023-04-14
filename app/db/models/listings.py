@@ -148,7 +148,7 @@ class WatchList(BaseModel):
         back_populates="listing_watchlists",
     )
 
-    session_key = Column(UUID(as_uuid=True))
+    session_key = Column(String)
 
     def __repr__(self):
         if self.user:

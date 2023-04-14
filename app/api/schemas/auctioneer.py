@@ -90,7 +90,6 @@ class CreateListingResponseDataSchema(BaseModel):
         auctioneer_id = values.get("auctioneer_id")
         auctioneer = user_manager.get_by_id(db, auctioneer_id)
         values.pop("auctioneer_id", None)
-        db.close()
         if auctioneer:
             avatar = None
             if auctioneer.avatar_id:
@@ -99,7 +98,9 @@ class CreateListingResponseDataSchema(BaseModel):
                     folder="user",
                     content_type=auctioneer.avatar.resource_type,
                 )
+            db.close()
             return {"name": auctioneer.full_name(), "avatar": avatar}
+        db.close()
         return v
 
     @validator("category", always=True)
@@ -125,13 +126,30 @@ class CreateListingResponseSchema(ResponseSchema):
 
 
 class UpdateProfileSchema(BaseModel):
-    first_name: str
-    last_name: str
-    file_type: str
+    first_name: str = Field("John", max_length=50)
+    last_name: str = Field("Doe", max_length=50)
+    file_type: str = Field("image/png")
+
+    @validator("first_name", "last_name")
+    def validate_name(cls, v):
+        if len(v.split(" ")) > 1:
+            raise ValueError("No spacing allowed")
+        return v
+
+    @validator("file_type")
+    def validate_file_type(cls, v):
+        if not v in ALLOWED_IMAGE_TYPES:
+            raise ValueError("Image type not allowed!")
+        return v
+
+    class Config:
+        error_msg_templates = {
+            "value_error.any_str.max_length": "50 characters max!",
+        }
 
 
 # RESPONSE FOR PUT REQUEST
-class UpdateProfileResponseDataSchema(ResponseSchema):
+class UpdateProfileResponseDataSchema(BaseModel):
     first_name: str
     last_name: str
     avatar_id: UUID
@@ -166,8 +184,8 @@ class UpdateProfileResponseSchema(ResponseSchema):
 class ProfileDataSchema(BaseModel):
     first_name: str
     last_name: str
-    avatar_id: UUID  # This must be above avatar field
-    avatar: Optional[str]
+    avatar_id: Optional[UUID]  # This must be above avatar field
+    avatar: Optional[Any]
 
     @validator("avatar", always=True)
     def assemble_image_url(cls, v, values):

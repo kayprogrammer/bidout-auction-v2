@@ -152,6 +152,7 @@ class BidsView(HTTPMethodView):
         description="This endpoint adds a bid to a particular listing.",
         response=Response(BidResponseSchema),
     )
+    @authorized()
     @validate_request(CreateBidSchema)
     async def post(self, request, **kwargs):
         slug = kwargs.get("slug")

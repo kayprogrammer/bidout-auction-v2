@@ -47,7 +47,6 @@ class ListingDataSchema(BaseModel):
         auctioneer_id = values.get("auctioneer_id")
         auctioneer = user_manager.get_by_id(db, auctioneer_id)
         values.pop("auctioneer_id", None)
-        db.close()
         if auctioneer:
             avatar = None
             if auctioneer.avatar_id:
@@ -56,7 +55,9 @@ class ListingDataSchema(BaseModel):
                     folder="user",
                     content_type=auctioneer.avatar.resource_type,
                 )
+            db.close()
             return {"name": auctioneer.full_name(), "avatar": avatar}
+        db.close()
         return v
 
     @validator("category", always=True)
@@ -120,7 +121,6 @@ class BidDataSchema(BaseModel):
         user_id = values.get("user_id")
         user = user_manager.get_by_id(db, user_id)
         values.pop("user_id", None)
-        db.close()
         if user:
             avatar = None
             if user.avatar_id:
@@ -129,7 +129,9 @@ class BidDataSchema(BaseModel):
                     folder="user",
                     content_type=user.avatar.resource_type,
                 )
+            db.close()
             return {"name": user.full_name(), "avatar": avatar}
+        db.close()
         return v
 
     class Config:

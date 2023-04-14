@@ -1,4 +1,4 @@
-from app.common.responses import CustomResponse
+from sanic import SanicException
 
 
 def validate_quantity(value):
@@ -6,5 +6,5 @@ def validate_quantity(value):
         try:
             value = int(value)
         except:
-            return CustomResponse.error("Quantity must be an integer")
+            raise SanicException(message="Quantity must be an integer", status_code=400)
     return value

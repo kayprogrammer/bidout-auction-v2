@@ -43,7 +43,7 @@ class AuctioneerListingsView(HTTPMethodView):
         summary="Retrieve all listings by the current user",
         description="This endpoint retrieves all listings by the current user",
         response=Response(ListingsResponseSchema),
-        parameter={"name": "quantity", "location": "query", "schema": int},
+        parameter={"name": "quantity", "location": "query", "schema": str},
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -65,7 +65,6 @@ class AuctioneerListingsView(HTTPMethodView):
     )
     @validate_request(CreateListingSchema)
     async def post(self, request, **kwargs):
-        print(request.method)
         data = request.json
         db = request.ctx.db
         user = request.ctx.user
@@ -107,6 +106,7 @@ class UpdateListingView(HTTPMethodView):
         description="This endpoint update a particular listing.",
         response=Response(CreateListingResponseSchema),
     )
+    @validate_request(CreateListingSchema)
     async def put(self, request, **kwargs):
         data = request.json
         db = request.ctx.db
@@ -142,12 +142,12 @@ class UpdateListingView(HTTPMethodView):
 
         listing = listing_manager.update(db, listing, data)
         data = CreateListingResponseDataSchema.from_orm(listing).dict()
-        return CustomResponse.success(
-            message="Listing created successfully", data=data, status_code=201
-        )
+        return CustomResponse.success(message="Listing updated successfully", data=data)
 
 
 class AuctioneerListingBidsView(HTTPMethodView):
+    decorators = [authorized()]
+
     @openapi.definition(
         summary="Retrieve all bids in a listing (current user)",
         description="This endpoint retrieves all bids in a particular listing by the current user.",
@@ -204,7 +204,7 @@ class ProfileView(HTTPMethodView):
         data.pop("file_type")
         data.update({"avatar_id": file.id})
 
-        user = user_manager.update(db, user, data)
+        user = user_manager.update(db, user.user, data)
         data = UpdateProfileResponseDataSchema.from_orm(user).dict()
         return CustomResponse.success(message="User updated!", data=data)
 
