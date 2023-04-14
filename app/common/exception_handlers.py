@@ -27,7 +27,7 @@ def validation_exception_handler(request, exc):
     # Change default rendering of pydantic validation errors
     if exc.status == 422:
         errors = json.loads(exc.body)
-
+        errors = errors["error"]
         modified_details = {}
         for error in errors:
             try:

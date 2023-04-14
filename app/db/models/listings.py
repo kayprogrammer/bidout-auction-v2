@@ -54,14 +54,19 @@ class Listing(BaseModel):
     bids_count = Column(Integer, default=0)
 
     image_id = Column(
-        UUID(as_uuid=True), ForeignKey("files.id", ondelete="CASCADE"), unique=True
+        UUID(as_uuid=True),
+        ForeignKey("files.id", ondelete="CASCADE"),
+        unique=True,
     )
     image = relationship(
         "File", foreign_keys=[image_id], back_populates="listing_image"
     )
 
     listing_bids = relationship(
-        "Bid", foreign_keys="Bid.listing_id", back_populates="listing"
+        "Bid",
+        foreign_keys="Bid.listing_id",
+        back_populates="listing",
+        lazy="dynamic",
     )
     listing_watchlists = relationship(
         "WatchList",
@@ -97,7 +102,7 @@ class Listing(BaseModel):
         if related_bids:
             highest_bid = (
                 related_bids.session.query(func.max(Bid.amount))
-                .filter_by(product_id=self.id)
+                .filter_by(listing_id=self.id)
                 .scalar()
             )
             highest_bid = related_bids.filter_by(amount=highest_bid).first().amount
@@ -143,7 +148,7 @@ class WatchList(BaseModel):
         back_populates="listing_watchlists",
     )
 
-    session_key = Column(String, nullable=True)
+    session_key = Column(UUID(as_uuid=True))
 
     def __repr__(self):
         if self.user:

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from pydantic import BaseModel, validator, Field
 from datetime import datetime
@@ -19,31 +19,33 @@ from decimal import Decimal
 
 
 class CreateWatchlistSchema(BaseModel):
-    slug: str
+    slug: str = Field("listing_slug")
 
 
 class ListingDataSchema(BaseModel):
     name: str
-    auctioneer: dict = {}
-    auctioneer_id: UUID
 
-    slug: str = None
+    auctioneer_id: UUID
+    auctioneer: Optional[dict]
+
+    slug: Optional[str]
     desc: str
-    category: Optional[str]
+
     category_id: UUID
+    category: Optional[str]
 
     price: Decimal = Field(1000.00, decimal_places=2)
     closing_date: datetime
     active: bool
     bids_count: int
     image_id: UUID
-    image: str = None
+    image: Optional[Any]
 
-    @validator("auctioneer", pre=True)
+    @validator("auctioneer", always=True)
     def show_auctioneer(cls, v, values):
         db = SessionLocal()
         auctioneer_id = values.get("auctioneer_id")
-        auctioneer = listing_manager.get_by_id(db, auctioneer_id)
+        auctioneer = user_manager.get_by_id(db, auctioneer_id)
         values.pop("auctioneer_id", None)
         db.close()
         if auctioneer:
@@ -57,7 +59,7 @@ class ListingDataSchema(BaseModel):
             return {"name": auctioneer.full_name(), "avatar": avatar}
         return v
 
-    @validator("category", pre=True)
+    @validator("category", always=True)
     def show_category(cls, v, values):
         db = SessionLocal()
         category_id = values.get("category_id")
@@ -66,7 +68,7 @@ class ListingDataSchema(BaseModel):
         db.close()
         return category.name if category else "Other"
 
-    @validator("image", pre=True)
+    @validator("image", always=True)
     def assemble_image_url(cls, v, values):
         db = SessionLocal()
         image_id = values.get("image_id")
@@ -74,9 +76,12 @@ class ListingDataSchema(BaseModel):
         if file:
             db.close()
             values.pop("image_id", None)
-            return FileProcessor.generate_file_url(
-                key=image_id, folder="listings", content_type=file.resource_type
+            file_url = FileProcessor.generate_file_url(
+                key=image_id,
+                folder="listings",
+                content_type=file.resource_type,
             )
+            return file_url
         db.close()
         values.pop("image_id", None)
         return None
@@ -93,10 +98,6 @@ class ListingsResponseSchema(ResponseSchema):
     data: List[ListingDataSchema]
 
 
-class ListingQuerySchema(BaseModel):
-    quantity: Optional[int]
-
-
 # ------------------------------------------------------ #
 
 
@@ -107,13 +108,13 @@ class CreateBidSchema(BaseModel):
 
 class BidDataSchema(BaseModel):
     id: UUID
-    user: dict = {}
     user_id: UUID
+    user: Optional[dict]
     amount: Decimal = Field(1000.00, decimal_places=2)
     created_at: datetime
     updated_at: datetime
 
-    @validator("user", pre=True)
+    @validator("user", always=True)
     def show_user(cls, v, values):
         db = SessionLocal()
         user_id = values.get("user_id")
@@ -130,6 +131,9 @@ class BidDataSchema(BaseModel):
                 )
             return {"name": user.full_name(), "avatar": avatar}
         return v
+
+    class Config:
+        orm_mode = True
 
 
 class BidResponseSchema(ResponseSchema):

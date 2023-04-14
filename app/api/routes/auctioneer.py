@@ -2,12 +2,10 @@ from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
-from sanic_pydantic import webargs
 from app.api.schemas.listings import (
     ListingDataSchema,
     ListingResponseSchema,
     ListingsResponseSchema,
-    ListingQuerySchema,
     BidDataSchema,
     BidsResponseSchema,
 )
@@ -30,7 +28,8 @@ from app.db.managers.listings import (
 )
 from app.db.managers.accounts import user_manager
 from app.db.managers.base import file_manager
-from app.api.utils.decorators import authorized
+from app.api.utils.decorators import authorized, validate_request
+from app.api.utils.validators import validate_quantity
 
 auctioneer_router = Blueprint("Auctioneer", url_prefix="/api/v2/auctioneer")
 
@@ -38,7 +37,6 @@ auctioneer_router = Blueprint("Auctioneer", url_prefix="/api/v2/auctioneer")
 class AuctioneerListingsView(HTTPMethodView):
     decorators = [
         authorized(),
-        webargs(query=ListingQuerySchema, body=CreateListingSchema),
     ]
 
     @openapi.definition(
@@ -50,8 +48,7 @@ class AuctioneerListingsView(HTTPMethodView):
     async def get(self, request, **kwargs):
         db = request.ctx.db
         user = request.ctx.user
-        quantity = request.args.get("quantity")
-        quantity = int(quantity) if quantity else None
+        quantity = validate_quantity(request.args.get("quantity"))
         listings = listing_manager.get_by_auctioneer_id(db, user.id)
 
         if quantity:
@@ -66,7 +63,9 @@ class AuctioneerListingsView(HTTPMethodView):
         description="This endpoint creates a new listing. Note: Use the returned upload_url to upload image to cloudinary",
         response=Response(CreateListingResponseSchema),
     )
+    @validate_request(CreateListingSchema)
     async def post(self, request, **kwargs):
+        print(request.method)
         data = request.json
         db = request.ctx.db
         user = request.ctx.user
@@ -94,9 +93,8 @@ class AuctioneerListingsView(HTTPMethodView):
 
         listing = listing_manager.create(db, data)
         data = CreateListingResponseDataSchema.from_orm(listing).dict()
-        print(data)
         return CustomResponse.success(
-            message="Listing created successfully", status_code=201
+            message="Listing created successfully", data=data, status_code=201
         )
 
 
@@ -195,6 +193,7 @@ class ProfileView(HTTPMethodView):
         description="This endpoint updates an authenticated user's profile. Note: use the returned upload_url to upload avatar to cloudinary",
         response=Response(UpdateProfileResponseSchema),
     )
+    @validate_request(UpdateProfileSchema)
     async def put(self, request, **kwargs):
         data = request.json
         db = request.ctx.db

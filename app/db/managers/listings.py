@@ -1,4 +1,5 @@
 from typing import Optional, List
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.db.managers.base import BaseManager
@@ -76,10 +77,36 @@ class WatchListManager(BaseManager[WatchList]):
     ) -> Optional[List[WatchList]]:
         watchlist = (
             db.query(self.model)
-            .filter(self.model.user_id == id | self.model.session_key == id)
+            .filter(or_(self.model.user_id == id, self.model.session_key == id))
             .all()
         )
         return watchlist
+
+    def get_by_user_id_or_session_key_and_listing_id(
+        self, db: Session, id: str, listing_id: str
+    ) -> Optional[List[WatchList]]:
+        watchlist = (
+            db.query(self.model)
+            .filter(or_(self.model.user_id == id, self.model.session_key == id))
+            .filter(self.model.listing_id == listing_id)
+        )
+        return watchlist
+
+    def create(self, db: Session, obj_in: dict):
+        user_id = obj_in.get("user_id")
+        session_key = obj_in.get("session_key")
+        listing_id = obj_in["listing_id"]
+        key = user_id if user_id else session_key
+
+        # Avoid duplicates
+        existing_watchlist = (
+            watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
+                db, key, listing_id
+            )
+        )
+        if existing_watchlist:
+            return existing_watchlist
+        return super().create(db, obj_in)
 
 
 class BidManager(BaseManager[Bid]):

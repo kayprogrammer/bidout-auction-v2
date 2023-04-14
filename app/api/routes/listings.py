@@ -2,13 +2,11 @@ from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
-from sanic_pydantic import webargs
 from app.api.schemas.listings import (
     CreateWatchlistSchema,
     ListingDataSchema,
     ListingsResponseSchema,
     ListingResponseSchema,
-    ListingQuerySchema,
     CreateBidSchema,
     BidDataSchema,
     BidsResponseSchema,
@@ -21,14 +19,13 @@ from app.db.managers.listings import (
     watchlist_manager,
     category_manager,
 )
-from app.api.utils.decorators import authorized
+from app.api.utils.decorators import authorized, validate_request
+from app.api.utils.validators import validate_quantity
 
 listings_router = Blueprint("Listings", url_prefix="/api/v2/listings")
 
 
 class ListingsView(HTTPMethodView):
-    decorators = [webargs(query=ListingQuerySchema)]
-
     @openapi.definition(
         summary="Retrieve all listings",
         description="This endpoint retrieves all listings",
@@ -37,8 +34,7 @@ class ListingsView(HTTPMethodView):
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
-        quantity = request.args.get("quantity")
-        quantity = int(quantity) if quantity else None
+        quantity = validate_quantity(request.args.get("quantity"))
         listings = listing_manager.get_all(db)
         if quantity:
             # Retrieve based on amount
@@ -60,7 +56,6 @@ class ListingDetailView(HTTPMethodView):
         listing = listing_manager.get_by_slug(db, slug)
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
-
         data = ListingDataSchema.from_orm(listing).dict()
         return CustomResponse.success(message="Listings fetched", data=data)
 
@@ -74,6 +69,9 @@ class ListingsByWatchListView(HTTPMethodView):
     async def get(self, request, **kwargs):
         db = request.ctx.db
         user = request.ctx.user
+
+        if hasattr(user, "email"):
+            user = user.id
         watchlists = watchlist_manager.get_by_user_id_or_session_key(db, user)
         data = [
             ListingDataSchema.from_orm(watchlist.listing).dict()
@@ -87,6 +85,7 @@ class ListingsByWatchListView(HTTPMethodView):
         description="This endpoint adds a listing to a user's watchlist, authenticated or not.",
         response=Response(ListingResponseSchema),
     )
+    @validate_request(CreateWatchlistSchema)
     async def post(self, request, **kwargs):
         data = request.json
         db = request.ctx.db
@@ -153,6 +152,7 @@ class BidsView(HTTPMethodView):
         description="This endpoint adds a bid to a particular listing.",
         response=Response(BidResponseSchema),
     )
+    @validate_request(CreateBidSchema)
     async def post(self, request, **kwargs):
         slug = kwargs.get("slug")
         data = request.json
@@ -170,7 +170,7 @@ class BidsView(HTTPMethodView):
             )
         elif not listing.active:
             return CustomResponse.error("This auction is closed!", status_code=410)
-        elif listing.time_left_seconds():
+        elif listing.time_left_seconds() < 1:
             return CustomResponse.error(
                 "This auction is expired and closed!", status_code=410
             )
@@ -179,6 +179,7 @@ class BidsView(HTTPMethodView):
                 "Bid amount cannot be less than the bidding price!"
             )
         elif amount <= listing.get_highest_bid():
+
             return CustomResponse.error("Bid amount must be more than the highest bid!")
 
         bid = bid_manager.create(

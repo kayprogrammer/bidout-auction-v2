@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Any
 
-from pydantic import BaseModel, validator, Field, StrictStr
+from pydantic import BaseModel, validator, Field, StrictStr, root_validator
 from datetime import datetime
 from uuid import UUID
 from .base import ResponseSchema
@@ -51,22 +51,23 @@ class CreateListingSchema(BaseModel):
 
 class CreateListingResponseDataSchema(BaseModel):
     name: str
-    auctioneer: dict = {}
     auctioneer_id: UUID
+    auctioneer: Optional[dict]
 
-    slug: str = None
+    slug: str
     desc: str
-    category: Optional[str]
+
     category_id: UUID
+    category: Optional[str]
 
     price: int
-    closing_date: datetime
+    closing_date: Any
     active: bool
     bids_count: int
     image_id: UUID
-    upload_url: str = None
+    upload_url: Optional[str]
 
-    @validator("upload_url", pre=True)
+    @validator("upload_url", always=True)
     def assemble_upload_url(cls, v, values):
         db = SessionLocal()
         image_id = values.get("image_id")
@@ -83,13 +84,11 @@ class CreateListingResponseDataSchema(BaseModel):
         values.pop("image_id", None)
         return None
 
-    @validator("auctioneer", pre=True)
+    @validator("auctioneer", always=True)
     def show_auctioneer(cls, v, values):
-        print("haa")
-
         db = SessionLocal()
         auctioneer_id = values.get("auctioneer_id")
-        auctioneer = listing_manager.get_by_id(db, auctioneer_id)
+        auctioneer = user_manager.get_by_id(db, auctioneer_id)
         values.pop("auctioneer_id", None)
         db.close()
         if auctioneer:
@@ -103,7 +102,7 @@ class CreateListingResponseDataSchema(BaseModel):
             return {"name": auctioneer.full_name(), "avatar": avatar}
         return v
 
-    @validator("category", pre=True)
+    @validator("category", always=True)
     def show_category(cls, v, values):
         db = SessionLocal()
         category_id = values.get("category_id")
@@ -136,9 +135,9 @@ class UpdateProfileResponseDataSchema(ResponseSchema):
     first_name: str
     last_name: str
     avatar_id: UUID
-    upload_url: str = None
+    upload_url: Optional[str]
 
-    @validator("upload_url", pre=True)
+    @validator("upload_url", always=True)
     def assemble_upload_url(cls, v, values):
         db = SessionLocal()
         avatar_id = values.get("avatar_id")
@@ -167,10 +166,10 @@ class UpdateProfileResponseSchema(ResponseSchema):
 class ProfileDataSchema(BaseModel):
     first_name: str
     last_name: str
-    avatar_id: UUID
-    avatar: str = None
+    avatar_id: UUID  # This must be above avatar field
+    avatar: Optional[str]
 
-    @validator("avatar", pre=True)
+    @validator("avatar", always=True)
     def assemble_image_url(cls, v, values):
         db = SessionLocal()
         avatar_id = values.get("avatar_id")

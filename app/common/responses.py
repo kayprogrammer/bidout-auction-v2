@@ -1,4 +1,23 @@
 from sanic.response import json
+from datetime import datetime
+from uuid import UUID
+
+
+def convert_unserializable_objects_to_string(data):
+    if isinstance(data, list):
+        for obj in data:
+            for key, value in obj.items():
+                if isinstance(value, datetime):
+                    obj[key] = str(value.isoformat())
+                elif isinstance(value, UUID):
+                    obj[key] = str(value)
+    else:
+        for key, value in data.items():
+            if isinstance(value, datetime):
+                data[key] = str(value.isoformat())
+            elif isinstance(value, UUID):
+                data[key] = str(value)
+    return data
 
 
 class CustomResponse:
@@ -12,7 +31,11 @@ class CustomResponse:
             "data": data,
         }
 
-        response.pop("data") if data == None else response
+        if data == None:
+            response.pop("data")
+        else:
+            response["data"] = convert_unserializable_objects_to_string(data)
+
         return json(response, status=status_code)
 
     @staticmethod

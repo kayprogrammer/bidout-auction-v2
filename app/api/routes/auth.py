@@ -2,7 +2,6 @@ from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody, Response
-from sanic_pydantic import webargs
 from app.api.schemas.auth import (
     RegisterUserSchema,
     VerifyOtpSchema,
@@ -23,12 +22,13 @@ from app.api.utils.tokens import (
     verify_refresh_token,
 )
 from app.api.utils.decorators import authorized
+from app.api.utils.decorators import validate_request
 
 auth_router = Blueprint("Auth", url_prefix="/api/v2/auth")
 
 
 class RegisterView(HTTPMethodView):
-    decorators = [webargs(body=RegisterUserSchema)]
+    decorators = [validate_request(RegisterUserSchema)]
 
     @openapi.definition(
         body=RequestBody(RegisterUserSchema, required=True),
@@ -50,7 +50,7 @@ class RegisterView(HTTPMethodView):
 
 
 class VerifyEmailView(HTTPMethodView):
-    decorators = [webargs(body=VerifyOtpSchema)]
+    decorators = [validate_request(VerifyOtpSchema)]
 
     @openapi.definition(
         body=RequestBody(VerifyOtpSchema, required=True),
@@ -85,7 +85,7 @@ class VerifyEmailView(HTTPMethodView):
 
 
 class ResendVerificationEmailView(HTTPMethodView):
-    decorators = [webargs(body=RequestOtpSchema)]
+    decorators = [validate_request(RequestOtpSchema)]
 
     @openapi.definition(
         body=RequestBody(RequestOtpSchema, required=True),
@@ -111,7 +111,7 @@ class ResendVerificationEmailView(HTTPMethodView):
 
 
 class SendPasswordResetOtpView(HTTPMethodView):
-    decorators = [webargs(body=RequestOtpSchema)]
+    decorators = [validate_request(RequestOtpSchema)]
 
     @openapi.definition(
         body=RequestBody(RequestOtpSchema, required=True),
@@ -133,7 +133,7 @@ class SendPasswordResetOtpView(HTTPMethodView):
 
 
 class VerifyPasswordResetOtpView(HTTPMethodView):
-    decorators = [webargs(body=VerifyOtpSchema)]
+    decorators = [validate_request(VerifyOtpSchema)]
 
     @openapi.definition(
         body=RequestBody(VerifyOtpSchema, required=True),
@@ -162,7 +162,7 @@ class VerifyPasswordResetOtpView(HTTPMethodView):
 
 
 class SetNewPasswordView(HTTPMethodView):
-    decorators = [webargs(body=SetNewPasswordSchema)]
+    decorators = [validate_request(SetNewPasswordSchema)]
 
     @openapi.definition(
         body=RequestBody(SetNewPasswordSchema, required=True),
@@ -193,7 +193,7 @@ class SetNewPasswordView(HTTPMethodView):
 
 
 class LoginView(HTTPMethodView):
-    decorators = [webargs(body=LoginUserSchema)]
+    decorators = [validate_request(LoginUserSchema)]
 
     @openapi.definition(
         body=RequestBody(LoginUserSchema, required=True),
@@ -230,7 +230,7 @@ class LoginView(HTTPMethodView):
 
 
 class RefreshTokensView(HTTPMethodView):
-    decorators = [webargs(body=RefreshTokensSchema)]
+    decorators = [validate_request(RefreshTokensSchema)]
 
     @openapi.definition(
         body=RequestBody(RefreshTokensSchema, required=True),
