@@ -1,5 +1,5 @@
 from typing import Optional, List
-from sqlalchemy import or_, and_, not_
+from sqlalchemy import or_, and_, not_, select
 from sqlalchemy.orm import Session
 
 from app.db.managers.base import BaseManager
@@ -94,11 +94,11 @@ class WatchListManager(BaseManager[WatchList]):
     def get_by_session_key(
         self, db: Session, session_key: UUID, user_id: UUID
     ) -> Optional[List[WatchList]]:
-        subquery = self.get_by_user_id(db, user_id)
+        subquery = db.query(self.model.listing_id).filter_by(user_id=user_id)
         watchlist = (
             db.query(self.model.listing_id)
             .filter(self.model.session_key == str(session_key))
-            .filter(not_(and_(self.model.listing_id == subquery.c.listing_id)))
+            .filter(not_(self.model.listing_id.in_(subquery)))
             .all()
         )
         return watchlist
@@ -106,6 +106,8 @@ class WatchListManager(BaseManager[WatchList]):
     def get_by_user_id_or_session_key(
         self, db: Session, id: UUID
     ) -> Optional[List[WatchList]]:
+        if not isinstance(id, UUID):
+            id = UUID(id)
         watchlist = (
             db.query(self.model)
             .filter(or_(self.model.user_id == id, self.model.session_key == str(id)))

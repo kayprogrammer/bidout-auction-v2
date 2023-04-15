@@ -69,9 +69,9 @@ class ListingsByWatchListView(HTTPMethodView):
     async def get(self, request, **kwargs):
         db = request.ctx.db
         user = request.ctx.user
-
         if hasattr(user, "email"):
             user = user.id
+
         watchlists = watchlist_manager.get_by_user_id_or_session_key(db, user)
         data = [
             ListingDataSchema.from_orm(watchlist.listing).dict()
@@ -95,7 +95,7 @@ class ListingsByWatchListView(HTTPMethodView):
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
 
-        data_entry = {"session_key": user, "listing_id": listing.id}
+        data_entry = {"session_key": str(user), "listing_id": listing.id}
         if hasattr(user, "email"):
             # Here we know its a user object and not a session key string, now we can retrieve id.
             data_entry["user_id"] = user.id
