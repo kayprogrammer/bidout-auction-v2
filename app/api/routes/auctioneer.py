@@ -1,10 +1,10 @@
 from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
-from sanic_ext.extensions.openapi.definitions import RequestBody, Response
+from sanic_ext.extensions.openapi.definitions import RequestBody
+
 from app.api.schemas.listings import (
     ListingDataSchema,
-    ListingResponseSchema,
     ListingsResponseSchema,
     BidDataSchema,
     BidsResponseSchema,
@@ -42,7 +42,7 @@ class AuctioneerListingsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by the current user",
         description="This endpoint retrieves all listings by the current user",
-        response=Response(ListingsResponseSchema),
+        response={"application/json": ListingsResponseSchema},
         parameter={"name": "quantity", "location": "query", "schema": str},
     )
     async def get(self, request, **kwargs):
@@ -58,10 +58,10 @@ class AuctioneerListingsView(HTTPMethodView):
         return CustomResponse.success(message="Auctioneer Listings fetched", data=data)
 
     @openapi.definition(
-        body=CreateListingSchema,
+        body=RequestBody({"application/json": CreateListingSchema}, required=True),
         summary="Create a listing",
         description="This endpoint creates a new listing. Note: Use the returned upload_url to upload image to cloudinary",
-        response=Response(CreateListingResponseSchema),
+        response={"application/json": CreateListingResponseSchema},
     )
     @validate_request(CreateListingSchema)
     async def post(self, request, **kwargs):
@@ -101,10 +101,10 @@ class UpdateListingView(HTTPMethodView):
     decorators = [authorized()]
 
     @openapi.definition(
-        body=RequestBody(CreateListingSchema, required=True),
+        body=RequestBody({"application/json": CreateListingSchema}, required=True),
         summary="Update a listing",
         description="This endpoint update a particular listing.",
-        response=Response(CreateListingResponseSchema),
+        response={"application/json": CreateListingResponseSchema},
     )
     @validate_request(CreateListingSchema)
     async def put(self, request, **kwargs):
@@ -151,7 +151,7 @@ class AuctioneerListingBidsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all bids in a listing (current user)",
         description="This endpoint retrieves all bids in a particular listing by the current user.",
-        response=Response(BidsResponseSchema),
+        response={"application/json": BidsResponseSchema},
     )
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
@@ -178,7 +178,7 @@ class ProfileView(HTTPMethodView):
     @openapi.definition(
         summary="Get Profile",
         description="This endpoint gets the current user's profile.",
-        response=Response(ProfileResponseSchema),
+        response={"application/json": ProfileResponseSchema},
     )
     async def get(self, request, **kwargs):
         data = request.json
@@ -188,10 +188,10 @@ class ProfileView(HTTPMethodView):
         return CustomResponse.success(message="User details fetched!", data=data)
 
     @openapi.definition(
-        body=RequestBody(UpdateProfileSchema, required=True),
+        body=RequestBody({"application/json": UpdateProfileSchema}, required=True),
         summary="Update Profile",
         description="This endpoint updates an authenticated user's profile. Note: use the returned upload_url to upload avatar to cloudinary",
-        response=Response(UpdateProfileResponseSchema),
+        response={"application/json": UpdateProfileResponseSchema},
     )
     @validate_request(UpdateProfileSchema)
     async def put(self, request, **kwargs):

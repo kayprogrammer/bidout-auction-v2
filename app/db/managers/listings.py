@@ -1,5 +1,5 @@
 from typing import Optional, List
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, not_
 from sqlalchemy.orm import Session
 
 from app.db.managers.base import BaseManager
@@ -87,10 +87,25 @@ class ListingManager(BaseManager[Listing]):
 
 
 class WatchListManager(BaseManager[WatchList]):
+    def get_by_user_id(self, db: Session, user_id: UUID) -> Optional[List[WatchList]]:
+        watchlist = db.query(self.model.listing_id).filter_by(user_id=user_id).all()
+        return watchlist
+
+    def get_by_session_key(
+        self, db: Session, session_key: UUID, user_id: UUID
+    ) -> Optional[List[WatchList]]:
+        subquery = self.get_by_user_id(db, user_id)
+        watchlist = (
+            db.query(self.model.listing_id)
+            .filter(self.model.session_key == str(session_key))
+            .filter(not_(and_(self.model.listing_id == subquery.c.listing_id)))
+            .all()
+        )
+        return watchlist
+
     def get_by_user_id_or_session_key(
         self, db: Session, id: UUID
     ) -> Optional[List[WatchList]]:
-        print(type(id))
         watchlist = (
             db.query(self.model)
             .filter(or_(self.model.user_id == id, self.model.session_key == str(id)))
@@ -124,6 +139,11 @@ class WatchListManager(BaseManager[WatchList]):
         if existing_watchlist:
             return existing_watchlist
         return super().create(db, obj_in)
+
+    def bulk_create(self, db: Session, obj_in: list):
+        db.bulk_insert_mappings(self.model, obj_in, render_nulls=True)
+        db.commit()
+        return True
 
 
 class BidManager(BaseManager[Bid]):

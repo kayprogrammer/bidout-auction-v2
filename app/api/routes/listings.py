@@ -1,7 +1,7 @@
 from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
-from sanic_ext.extensions.openapi.definitions import RequestBody, Response
+from sanic_ext.extensions.openapi.definitions import RequestBody
 from app.api.schemas.listings import (
     CreateWatchlistSchema,
     ListingDataSchema,
@@ -29,7 +29,7 @@ class ListingsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings",
         description="This endpoint retrieves all listings",
-        response=Response(ListingsResponseSchema),
+        response={"application/json": ListingsResponseSchema},
         parameter={"name": "quantity", "location": "query", "schema": int},
     )
     async def get(self, request, **kwargs):
@@ -39,6 +39,7 @@ class ListingsView(HTTPMethodView):
         if quantity:
             # Retrieve based on amount
             listings = listings[:quantity]
+
         data = [ListingDataSchema.from_orm(listing).dict() for listing in listings]
         return CustomResponse.success(message="Listings fetched", data=data)
 
@@ -47,7 +48,7 @@ class ListingDetailView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve listing's detail",
         description="This endpoint retrieves detail of a listing",
-        response=Response(ListingResponseSchema),
+        response={"application/json": ListingResponseSchema},
     )
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
@@ -63,7 +64,7 @@ class ListingsByWatchListView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by users watchlist",
         description="This endpoint retrieves all listings",
-        response=Response(ListingsResponseSchema),
+        response={"application/json": ListingsResponseSchema},
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -79,10 +80,10 @@ class ListingsByWatchListView(HTTPMethodView):
         return CustomResponse.success(message="Watchlists Listings fetched", data=data)
 
     @openapi.definition(
-        body=RequestBody(CreateWatchlistSchema, required=True),
+        body=RequestBody({"application/json": CreateWatchlistSchema}, required=True),
         summary="Add a listing to a users watchlist",
         description="This endpoint adds a listing to a user's watchlist, authenticated or not.",
-        response=Response(ListingResponseSchema),
+        response={"application/json": ListingsResponseSchema},
     )
     @validate_request(CreateWatchlistSchema)
     async def post(self, request, **kwargs):
@@ -111,7 +112,7 @@ class ListingsByCategoryView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by category",
         description="This endpoint retrieves all listings in a particular category. Use slug 'other' for category other",
-        response=Response(ListingsResponseSchema),
+        response={"application/json": ListingsResponseSchema},
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -132,7 +133,7 @@ class BidsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all bids in a listing",
         description="This endpoint retrieves all bids in a particular listing.",
-        response=Response(BidsResponseSchema),
+        response={"application/json": BidsResponseSchema},
     )
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
@@ -146,10 +147,10 @@ class BidsView(HTTPMethodView):
         return CustomResponse.success(message="Listing Bids fetched", data=data)
 
     @openapi.definition(
-        body=RequestBody(CreateBidSchema, required=True),
+        body=RequestBody({"application/json": CreateBidSchema}, required=True),
         summary="Add a bid to a listing",
         description="This endpoint adds a bid to a particular listing.",
-        response=Response(BidResponseSchema),
+        response={"application/json": BidResponseSchema},
     )
     @authorized()
     @validate_request(CreateBidSchema)

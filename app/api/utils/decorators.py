@@ -2,6 +2,7 @@ from functools import wraps
 from app.common.responses import CustomResponse
 from sanic import json, Request
 from pydantic import ValidationError
+from sanic.exceptions import SanicException
 
 
 def authorized():
@@ -29,9 +30,16 @@ def validate_request(schema):
         async def decorated_function(request, *args, **kwargs):
             if not isinstance(request, Request):  # Important for CBVs
                 request = args[0]
+            json_data = request.json
+            if not json_data:
+                raise SanicException(
+                    message="Invalid request. Missing body", status_code=400
+                )
             try:
                 data = schema(**request.json)
-                kwargs.update(data.dict())
+                data_dict = data.dict()
+                request.json.update(data_dict)
+                kwargs.update(data_dict)
             except ValidationError as e:
                 print(e)
                 return json({"error": e.errors()}, status=422)

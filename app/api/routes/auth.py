@@ -1,7 +1,7 @@
 from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
-from sanic_ext.extensions.openapi.definitions import RequestBody, Response
+from sanic_ext.extensions.openapi.definitions import RequestBody
 from app.api.schemas.auth import (
     RegisterUserSchema,
     VerifyOtpSchema,
@@ -11,9 +11,10 @@ from app.api.schemas.auth import (
     RefreshTokensSchema,
 )
 from app.api.schemas.base import ResponseSchema
-from app.db.models.accounts import User
 from app.common.responses import CustomResponse
 from app.db.managers.accounts import user_manager, otp_manager, jwt_manager
+from app.db.managers.listings import watchlist_manager
+
 from app.api.utils.emails import send_email
 from app.core.security import verify_password
 from app.api.utils.tokens import (
@@ -31,10 +32,10 @@ class RegisterView(HTTPMethodView):
     decorators = [validate_request(RegisterUserSchema)]
 
     @openapi.definition(
-        body=RequestBody(RegisterUserSchema, required=True),
+        body=RequestBody({"application/json": RegisterUserSchema}, required=True),
         summary="Register a new user",
         description="This endpoint registers new users into our application",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -53,10 +54,10 @@ class VerifyEmailView(HTTPMethodView):
     decorators = [validate_request(VerifyOtpSchema)]
 
     @openapi.definition(
-        body=RequestBody(VerifyOtpSchema, required=True),
+        body=RequestBody({"application/json": VerifyOtpSchema}, required=True),
         summary="Verify a user's email",
         description="This endpoint verifies a user's email",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -88,10 +89,10 @@ class ResendVerificationEmailView(HTTPMethodView):
     decorators = [validate_request(RequestOtpSchema)]
 
     @openapi.definition(
-        body=RequestBody(RequestOtpSchema, required=True),
+        body=RequestBody({"application/json": RequestOtpSchema}, required=True),
         summary="Resend Verification Email",
         description="This endpoint resends new otp to the user's email",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -114,10 +115,10 @@ class SendPasswordResetOtpView(HTTPMethodView):
     decorators = [validate_request(RequestOtpSchema)]
 
     @openapi.definition(
-        body=RequestBody(RequestOtpSchema, required=True),
+        body=RequestBody({"application/json": RequestOtpSchema}, required=True),
         summary="Send Password Reset Otp",
         description="This endpoint sends new password reset otp to the user's email",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -136,10 +137,10 @@ class VerifyPasswordResetOtpView(HTTPMethodView):
     decorators = [validate_request(VerifyOtpSchema)]
 
     @openapi.definition(
-        body=RequestBody(VerifyOtpSchema, required=True),
+        body=RequestBody({"application/json": VerifyOtpSchema}, required=True),
         summary="Verify Password Reset Otp",
         description="This endpoint verifies the password reset otp",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -165,10 +166,10 @@ class SetNewPasswordView(HTTPMethodView):
     decorators = [validate_request(SetNewPasswordSchema)]
 
     @openapi.definition(
-        body=RequestBody(SetNewPasswordSchema, required=True),
+        body=RequestBody({"application/json": SetNewPasswordSchema}, required=True),
         summary="Set New Password",
         description="This endpoint works only when the reset otp has been successfully verified within the same request",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -196,10 +197,10 @@ class LoginView(HTTPMethodView):
     decorators = [validate_request(LoginUserSchema)]
 
     @openapi.definition(
-        body=RequestBody(LoginUserSchema, required=True),
+        body=RequestBody({"application/json": LoginUserSchema}, required=True),
         summary="Login a user",
         description="This endpoint generates new access and refresh tokens for authentication",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -222,21 +223,35 @@ class LoginView(HTTPMethodView):
             db, {"user_id": user.id, "access": access, "refresh": refresh}
         )
 
-        return CustomResponse.success(
+        # Move all guest user watchlists to the authenticated user watchlists
+        session_key = request.cookies.get("session_key")
+        guest_user_watchlists = watchlist_manager.get_by_session_key(
+            db, session_key, user.id
+        )
+        if len(guest_user_watchlists) > 0:
+            data_to_create = [
+                {"user_id": user.id, "listing_id": watchlist.listing_id}.copy()
+                for watchlist in guest_user_watchlists
+            ]
+            watchlist_manager.bulk_create(db, data_to_create)
+
+        response = CustomResponse.success(
             message="Login successful",
             data={"access": access, "refresh": refresh},
             status_code=201,
         )
+        response.delete_cookie("session_key")
+        return response
 
 
 class RefreshTokensView(HTTPMethodView):
     decorators = [validate_request(RefreshTokensSchema)]
 
     @openapi.definition(
-        body=RequestBody(RefreshTokensSchema, required=True),
+        body=RequestBody({"application/json": RefreshTokensSchema}, required=True),
         summary="Refresh tokens",
         description="This endpoint refresh tokens by generating new access and refresh tokens for a user",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
@@ -270,7 +285,7 @@ class LogoutView(HTTPMethodView):
     @openapi.definition(
         summary="Logout a user",
         description="This endpoint logs a user out from our application",
-        response=Response(ResponseSchema),
+        response={"application/json": ResponseSchema},
         operation="security",
     )
     async def get(self, request, **kwargs):
