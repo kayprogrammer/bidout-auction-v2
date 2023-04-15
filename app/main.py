@@ -53,7 +53,6 @@ def create_app() -> Sanic:
     app.register_middleware(close_db_session, "response")
     app.register_middleware(inject_current_user, "request")
     app.register_middleware(inject_or_remove_session_key, "response")
-
     app.register_middleware(validation_exception_handler, "response")
     app.register_middleware(add_cors_headers, "response")
 

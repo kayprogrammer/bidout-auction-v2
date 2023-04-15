@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import get_password_hash
 from app.db.managers.base import BaseManager
-from app.db.models.accounts import Jwt, Otp, Timezone, User
+from app.db.models.accounts import Jwt, Otp, User
 from uuid import UUID
 
 
@@ -23,12 +23,6 @@ class UserManager(BaseManager[User]):
         if password:
             obj_in["password"] = get_password_hash(password)
         return super().update(db, db_obj, obj_in)
-
-
-class TimezoneManager(BaseManager[Timezone]):
-    def get_by_name(self, db: Session, name: str) -> Optional[Timezone]:
-        timezone = db.query(self.model).filter_by(name=name).first()
-        return timezone
 
 
 class OtpManager(BaseManager[Otp]):
@@ -55,7 +49,6 @@ class JwtManager(BaseManager[Jwt]):
 
 # How to use
 user_manager = UserManager(User)
-timezone_manager = TimezoneManager(Timezone)
 otp_manager = OtpManager(Otp)
 jwt_manager = JwtManager(Jwt)
 

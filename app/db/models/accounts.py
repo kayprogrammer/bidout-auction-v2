@@ -14,17 +14,6 @@ from app.core.config import settings
 from app.db.models.listings import WatchList
 
 
-class Timezone(BaseModel):
-    __tablename__ = "timezones"
-    name = Column(String())
-    user_timezones = relationship(
-        "User", foreign_keys="User.tz_id", back_populates="timezone", lazy=True
-    )
-
-    def __repr__(self):
-        return str(self.name)
-
-
 class User(BaseModel):
     __tablename__ = "users"
     first_name = Column(String(50))
@@ -33,11 +22,6 @@ class User(BaseModel):
     email = Column(String(), unique=True)
 
     password = Column(String())
-    tz_id = Column(UUID(as_uuid=True), ForeignKey("timezones.id", ondelete="SET NULL"))
-    timezone = relationship(
-        "Timezone", foreign_keys=[tz_id], back_populates="user_timezones"
-    )
-
     is_email_verified = Column(Boolean(), default=False)
     is_superuser = Column(Boolean(), default=False)
     is_staff = Column(Boolean(), default=False)
