@@ -13,3 +13,6 @@ mmig:
 
 mig:
 	alembic upgrade heads
+
+test:
+	pytest --disable-warnings -vv

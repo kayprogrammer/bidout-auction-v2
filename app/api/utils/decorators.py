@@ -41,8 +41,7 @@ def validate_request(schema):
                 request.json.update(data_dict)
                 kwargs.update(data_dict)
             except ValidationError as e:
-                print(e)
-                return json({"error": e.errors()}, status=422)
+                return json({"type": "pydantic", "error": e.errors()}, status=422)
             return await f(request, *args, **kwargs)
 
         return decorated_function

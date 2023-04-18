@@ -30,35 +30,39 @@ BASE_AUTH_URL_PATH = "/api/v2/auth"
 
 
 @pytest.fixture
-def database():
+def sort_client():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
     db = TestSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-
-@pytest.fixture
-def client(database):
-    _base_model_session_ctx = ContextVar("session")
+    _base_model_session_ctx = ContextVar("testsession")
 
     def inject_db_session(request):
         # Inject db to request context
-        request.ctx.db = TestSessionLocal()
-        request.ctx.session_ctx_token = _base_model_session_ctx.set(request.ctx.db)
+        request.ctx.db = db
+        request.ctx.testsession_ctx_token = _base_model_session_ctx.set(request.ctx.db)
 
     def close_db_session(request, response):
         # close db session
-        if hasattr(request.ctx, "session_ctx_token") and request.ctx.db is not None:
-            _base_model_session_ctx.reset(request.ctx.session_ctx_token)
+        if hasattr(request.ctx, "testsession_ctx_token") and request.ctx.db is not None:
+            _base_model_session_ctx.reset(request.ctx.testsession_ctx_token)
             request.ctx.db.close()
 
     app.register_middleware(inject_db_session, "request")
     app.register_middleware(close_db_session, "response")
+    return {"database": db, "app": app}
 
+
+@pytest.fixture
+def database(sort_client):
+    db = sort_client["database"]
+    return db
+
+
+@pytest.fixture
+def client(sort_client):
+    app = sort_client["app"]
     yield app.test_client
 
 

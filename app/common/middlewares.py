@@ -12,7 +12,7 @@ def _add_cors_headers(response, methods: Iterable[str]) -> None:
         "Access-Control-Allow-Methods": ",".join(allow_methods),
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Headers": (
-            "origin, content-type, accept, " "authorization, x-xsrf-token, x-request-id"
+            "origin, content-type, accept, " "authorization, x-csrf-token, x-request-id"
         ),
     }
     response.headers.extend(headers)

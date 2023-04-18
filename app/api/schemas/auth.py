@@ -15,16 +15,6 @@ class RegisterUserSchema(BaseModel):
             raise ValueError("No spacing allowed")
         return v
 
-    @validator("email")
-    def validate_email(cls, v):
-        db = SessionLocal()
-        existing_user = user_manager.get_by_email(db, v)
-        if existing_user:
-            db.close()
-            raise ValueError("Email already registered!")
-        db.close()
-        return v
-
     class Config:
         error_msg_templates = {
             "value_error.any_str.max_length": "50 characters max!",

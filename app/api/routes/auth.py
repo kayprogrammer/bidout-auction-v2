@@ -40,6 +40,17 @@ class RegisterView(HTTPMethodView):
     async def post(self, request, **kwargs):
         db = request.ctx.db
         data = request.json
+
+        # Check for existing user
+        existing_user = user_manager.get_by_email(db, data["email"])
+        if existing_user:
+            return CustomResponse.error(
+                "Invalid Entry",
+                data={"email": "Email already registered!"},
+                status_code=422,
+            )
+
+        # Create user
         user = user_manager.create(db, data)
 
         # Send verification email

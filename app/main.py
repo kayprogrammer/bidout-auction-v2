@@ -74,7 +74,6 @@ def create_app() -> Sanic:
 
 
 app = create_app()
-test_client = app.test_client
 
 
 @openapi.definition(
