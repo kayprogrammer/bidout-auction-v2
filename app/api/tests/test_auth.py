@@ -68,7 +68,6 @@ def test_verify_email(client, test_user, database):
 def test_resend_verification_email(client, test_user, database):
     user_in = {"email": test_user.email}
 
-    print(test_user.is_email_verified)
     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
         # Then, attempt to resend the verification email
         request, response = client.post(
@@ -78,6 +77,20 @@ def test_resend_verification_email(client, test_user, database):
         assert response.json == {
             "status": "success",
             "message": "Verification email sent",
+        }
+
+    # Verify that a verified user cannot get a new email
+    test_user = database.merge(test_user)  # To prevent non persistent session error
+    test_user = user_manager.update(database, test_user, {"is_email_verified": True})
+    with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
+        request, response = client.post(
+            f"{BASE_URL_PATH}/resend-verification-email",
+            json={"email": test_user.email},
+        )
+        assert response.status_code == 200
+        assert response.json == {
+            "status": "success",
+            "message": "Email already verified",
         }
 
     # Verify that an error is raised when attempting to resend the verification email for a user that doesn't exist
@@ -93,42 +106,43 @@ def test_resend_verification_email(client, test_user, database):
         }
 
 
-# def test_login(client, database, test_user):
+def test_login(client, database, test_user):
 
-#     # Test for invalid credentials
-#     request, response = client.post(
-#         f"{BASE_URL_PATH}/login",
-#         json={"email": "not_registered@email.com", "password": "not_registered"},
-#     )
-#     assert response.status_code == 401
-#     assert response.json == {
-#         "status": "failure",
-#         "message": "Invalid credentials",
-#     }
+    # Test for invalid credentials
+    request, response = client.post(
+        f"{BASE_URL_PATH}/login",
+        json={"email": "not_registered@email.com", "password": "not_registered"},
+    )
+    assert response.status_code == 401
+    assert response.json == {
+        "status": "failure",
+        "message": "Invalid credentials",
+    }
 
-#     # Test for unverified credentials (email)
-#     user_manager.update(database, test_user, {"is_email_verified": False})
-#     request, response = client.post(
-#         f"{BASE_URL_PATH}/login",
-#         json={"email": test_user.email, "password": "testuser123"},
-#     )
-#     assert response.status_code == 401
-#     assert response.json == {
-#         "status": "failure",
-#         "message": "Verify your email first",
-#     }
+    # Test for unverified credentials (email)
+    request, response = client.post(
+        f"{BASE_URL_PATH}/login",
+        json={"email": test_user.email, "password": "testuser123"},
+    )
+    assert response.status_code == 401
+    assert response.json == {
+        "status": "failure",
+        "message": "Verify your email first",
+    }
 
-#     # Test for valid credentials and verified email address
-#     request, response = client.post(
-#         f"{BASE_URL_PATH}/login",
-#         json={"email": test_user.email, "password": "testuser123"},
-#     )
-#     assert response.status_code == 201
-#     assert response.json == {
-#         "status": "success",
-#         "message": "Login successful",
-#         "data": {"access": mock.ANY, "refresh": mock.ANY},
-#     }
+    # Test for valid credentials and verified email address
+    test_user = database.merge(test_user)  # To prevent non persistent session error
+    test_user = user_manager.update(database, test_user, {"is_email_verified": True})
+    request, response = client.post(
+        f"{BASE_URL_PATH}/login",
+        json={"email": test_user.email, "password": "testuser123"},
+    )
+    assert response.status_code == 201
+    assert response.json == {
+        "status": "success",
+        "message": "Login successful",
+        "data": {"access": mock.ANY, "refresh": mock.ANY},
+    }
 
 
 # def test_refresh_token(client, database, verified_user):
