@@ -2,6 +2,7 @@ from datetime import datetime
 import mock
 
 from app.db.managers.accounts import user_manager, jwt_manager, otp_manager
+from app.api.utils.tokens import create_refresh_token
 
 BASE_URL_PATH = "/api/v2/auth"
 
@@ -145,45 +146,48 @@ def test_login(client, database, test_user):
     }
 
 
-# def test_refresh_token(client, database, verified_user):
+def test_refresh_token(client, database, verified_user):
 
-#     jwt_obj = jwt_manager.create(
-#         database,
-#         {"user_id": str(verified_user.id), "access": "access", "refresh": "refresh"},
-#     )
+    jwt_obj = jwt_manager.create(
+        database,
+        {"user_id": str(verified_user.id), "access": "access", "refresh": "refresh"},
+    )
 
-#     # Test for invalid refresh token (not found)
-#     request, response = client.post(
-#         f"{BASE_URL_PATH}/refresh", json={"refresh": "invalid_refresh_token"}
-#     )
-#     assert response.status_code == 404
-#     assert response.json == {
-#         "status": "failure",
-#         "message": "Refresh token does not exist",
-#     }
+    # Test for invalid refresh token (not found)
+    request, response = client.post(
+        f"{BASE_URL_PATH}/refresh", json={"refresh": "invalid_refresh_token"}
+    )
+    assert response.status_code == 404
+    assert response.json == {
+        "status": "failure",
+        "message": "Refresh token does not exist",
+    }
 
-#     # Test for invalid refresh token (invalid or expired)
-#     request, response = client.post(
-#         f"{BASE_URL_PATH}/refresh", json={"refresh": jwt_obj.refresh}
-#     )
-#     assert response.status_code == 401
-#     assert response.json == {
-#         "status": "failure",
-#         "message": "Refresh token is invalid or expired",
-#     }
+    # Test for invalid refresh token (invalid or expired)
+    request, response = client.post(
+        f"{BASE_URL_PATH}/refresh", json={"refresh": jwt_obj.refresh}
+    )
+    assert response.status_code == 401
+    assert response.json == {
+        "status": "failure",
+        "message": "Refresh token is invalid or expired",
+    }
 
-#     # Test for valid refresh token
-#     with mock.patch("app.api.utils.tokens.verify_refresh_token") as mock_verify:
-#         mock_verify.return_value = True
-#         request, response = client.post(
-#             f"{BASE_URL_PATH}/refresh", json={"refresh": jwt_obj.refresh}
-#         )
-#         assert response.status_code == 201
-#         assert response.json == {
-#             "status": "success",
-#             "message": "Token Refresh successful",
-#             "data": {"access": mock.ANY, "refresh": mock.ANY},
-#         }
+    # Test for valid refresh token
+    refresh = create_refresh_token()
+    jwt_obj = database.merge(jwt_obj)  # To prevent non persistent session error
+    jwt_obj = jwt_manager.update(database, jwt_obj, {"refresh": refresh})
+    with mock.patch("app.api.utils.tokens.verify_refresh_token") as mock_verify:
+        mock_verify.return_value = True
+        request, response = client.post(
+            f"{BASE_URL_PATH}/refresh", json={"refresh": jwt_obj.refresh}
+        )
+        assert response.status_code == 201
+        assert response.json == {
+            "status": "success",
+            "message": "Tokens refresh successful",
+            "data": {"access": mock.ANY, "refresh": mock.ANY},
+        }
 
 
 # def test_get_password_otp(client, database, verified_user):
