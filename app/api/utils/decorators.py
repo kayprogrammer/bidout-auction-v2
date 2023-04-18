@@ -17,7 +17,7 @@ def authorized():
                 response = await f(request, *args, **kwargs)
                 return response
             else:
-                return CustomResponse.error("Unauthorized User", status_code=401)
+                return CustomResponse.error("Unauthorized user", status_code=401)
 
         return decorated_function
 

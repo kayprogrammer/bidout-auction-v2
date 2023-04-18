@@ -67,7 +67,7 @@ class VerifyEmailView(HTTPMethodView):
         if not user_by_email:
             return CustomResponse.error("Incorrect Email", status_code=404)
         if user_by_email.is_email_verified:
-            return CustomResponse.success("Email already verified", status_code=200)
+            return CustomResponse.success("Email already verified")
 
         otp = otp_manager.get_by_user_id(db, user_by_email.id)
         if not otp or otp.code != data["otp"]:
@@ -80,9 +80,7 @@ class VerifyEmailView(HTTPMethodView):
 
         # Send welcome email
         send_email(request, db, user, "welcome")
-        return CustomResponse.success(
-            message="Account verification successful", status_code=200
-        )
+        return CustomResponse.success(message="Account verification successful")
 
 
 class ResendVerificationEmailView(HTTPMethodView):
@@ -101,14 +99,12 @@ class ResendVerificationEmailView(HTTPMethodView):
         if not user_by_email:
             return CustomResponse.error("Incorrect Email", status_code=404)
         if user_by_email.is_email_verified:
-            return CustomResponse.success("Email already verified", status_code=200)
+            return CustomResponse.success("Email already verified")
 
         # Send verification email
         send_email(request, db, user_by_email, "activate")
 
-        return CustomResponse.success(
-            message="Verification email sent", status_code=200
-        )
+        return CustomResponse.success(message="Verification email sent")
 
 
 class SendPasswordResetOtpView(HTTPMethodView):
@@ -130,7 +126,7 @@ class SendPasswordResetOtpView(HTTPMethodView):
         # Send password reset email
         send_email(request, db, user_by_email, "reset")
 
-        return CustomResponse.success(message="Password otp sent", status_code=200)
+        return CustomResponse.success(message="Password otp sent")
 
 
 class VerifyPasswordResetOtpView(HTTPMethodView):
@@ -155,9 +151,7 @@ class VerifyPasswordResetOtpView(HTTPMethodView):
         if otp.check_expiration():
             return CustomResponse.error("Expired Otp")
 
-        response = CustomResponse.success(
-            message="Otp verified successfully", status_code=200
-        )
+        response = CustomResponse.success(message="Otp verified successfully")
         response.add_cookie("email", user_by_email.email, max_age=900)
         return response
 
@@ -186,9 +180,7 @@ class SetNewPasswordView(HTTPMethodView):
         # Send password reset success email
         send_email(request, db, user_by_email, "reset-success")
 
-        response = CustomResponse.success(
-            message="Password reset successfully", status_code=200
-        )
+        response = CustomResponse.success(message="Password reset successful")
         response.delete_cookie("email")
         return response
 
@@ -259,9 +251,7 @@ class RefreshTokensView(HTTPMethodView):
         token = data["refresh"]
         jwt = jwt_manager.get_by_refresh(db, token)
         if not jwt:
-            return CustomResponse.error(
-                "Refresh token does not exists", status_code=404
-            )
+            return CustomResponse.error("Refresh token does not exist", status_code=404)
         if not verify_refresh_token(token):
             return CustomResponse.error(
                 "Refresh token is invalid or expired", status_code=401
@@ -275,7 +265,7 @@ class RefreshTokensView(HTTPMethodView):
         return CustomResponse.success(
             message="Tokens refresh successful",
             data={"access": access, "refresh": refresh},
-            status_code=200,
+            status_code=201,
         )
 
 

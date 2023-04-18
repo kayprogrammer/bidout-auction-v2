@@ -42,7 +42,7 @@ def database():
 
 
 @pytest.fixture
-def client(db):
+def client(database):
     _base_model_session_ctx = ContextVar("session")
 
     def inject_db_session(request):
@@ -59,23 +59,23 @@ def client(db):
     app.register_middleware(inject_db_session, "request")
     app.register_middleware(close_db_session, "response")
 
-    yield TestClient(app)
+    yield app.test_client
 
 
 @pytest.fixture
-def test_user(client, db):
+def test_user(client, database):
     create_user_dict = {
         "first_name": "Test",
         "last_name": "User",
         "email": "testuser@example.com",
         "password": "testuser123",
     }
-    user = user_manager.create(db, create_user_dict)
+    user = user_manager.create(database, create_user_dict)
     return user
 
 
 @pytest.fixture
-def verified_user(db):
+def verified_user(database):
     create_user_dict = {
         "first_name": "TestUser",
         "last_name": "Verified",
@@ -84,16 +84,16 @@ def verified_user(db):
         "is_email_verified": True,
     }
 
-    user = user_manager.create(db, create_user_dict)
+    user = user_manager.create(database, create_user_dict)
     return user
 
 
 @pytest.fixture
-def authorized_client(verified_user, client, db):
+def authorized_client(verified_user, client, database):
     access = create_access_token({"user_id": str(verified_user.id)})
     refresh = create_refresh_token()
     jwt_manager.create(
-        db, {"user_id": verified_user.id, "access": access, "refresh": refresh}
+        database, {"user_id": verified_user.id, "access": access, "refresh": refresh}
     )
 
     client.headers = {**client.headers, "Bearer": access}
@@ -101,9 +101,9 @@ def authorized_client(verified_user, client, db):
 
 
 @pytest.fixture
-def create_listing(auctioneer_id, db):
+def create_listing(auctioneer_id, database):
     # Create Category
-    category = category_manager.create(db, {"name": "TestCategory"})
+    category = category_manager.create(database, {"name": "TestCategory"})
 
     # Create Listing
     listing_dict = {
@@ -114,7 +114,7 @@ def create_listing(auctioneer_id, db):
         "price": 1000.00,
         "closing_date": datetime.now() + timedelta(days=1),
     }
-    listing = listing_manager.create(db, listing_dict)
+    listing = listing_manager.create(database, listing_dict)
 
     return {
         "user_id": auctioneer_id,
