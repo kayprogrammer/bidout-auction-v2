@@ -1,6 +1,5 @@
 from datetime import datetime
 import mock
-import json
 
 from app.db.managers.accounts import user_manager, jwt_manager, otp_manager
 
@@ -66,52 +65,32 @@ def test_verify_email(client, test_user, database):
         }
 
 
-# def test_resend_verification_email(client, test_user, database):
+def test_resend_verification_email(client, test_user, database):
+    user_in = {"email": test_user.email}
 
-#     email = test_user.email
-#     user_in = {"email": email}
+    print(test_user.is_email_verified)
+    with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
+        # Then, attempt to resend the verification email
+        request, response = client.post(
+            f"{BASE_URL_PATH}/resend-verification-email", json=user_in
+        )
+        assert response.status_code == 200
+        assert response.json == {
+            "status": "success",
+            "message": "Verification email sent",
+        }
 
-#     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-#         # Then, attempt to resend the verification email
-#         request, response = client.post(
-#             f"{BASE_URL_PATH}/resend-verification-email", json=user_in
-#         )
-#         assert response.status_code == 200
-#         assert response.json == {
-#             "status": "success",
-#             "message": "Verification email sent",
-#         }
-#         send_verification_email_mock.assert_called_with(mock.ANY, mock.ANY)
-
-#     # Verify the user
-#     user = user_manager.get_by_email(database, email)
-#     user.verified = datetime.now()
-#     database.commit()
-
-#     # Verify that a user who is already verified cannot resend the email
-#     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-#         request, response = client.post(
-#             f"{BASE_URL_PATH}/resend-verification-email", json={"email": email}
-#         )
-#         assert response.status_code == 200
-#         assert response.json == {
-#             "status": "success",
-#             "message": "Email already verified",
-#         }
-#         assert send_verification_email_mock.call_count == 0
-
-#     # Verify that an error is raised when attempting to resend the verification email for a user that doesn't exist
-#     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-#         request, response = client.post(
-#             f"{BASE_URL_PATH}/resend-verification-email",
-#             json={"email": "invalid@example.com"},
-#         )
-#         assert response.status_code == 404
-#         assert response.json == {
-#             "status": "failure",
-#             "message": "Incorrect Email",
-#         }
-#         assert send_verification_email_mock.call_count == 0
+    # Verify that an error is raised when attempting to resend the verification email for a user that doesn't exist
+    with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
+        request, response = client.post(
+            f"{BASE_URL_PATH}/resend-verification-email",
+            json={"email": "invalid@example.com"},
+        )
+        assert response.status_code == 404
+        assert response.json == {
+            "status": "failure",
+            "message": "Incorrect Email",
+        }
 
 
 # def test_login(client, database, test_user):
