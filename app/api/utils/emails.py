@@ -3,18 +3,6 @@ from email.mime.multipart import MIMEMultipart
 from .threads import EmailThread
 from app.core.config import settings
 from app.db.managers.accounts import otp_manager
-import random
-
-
-def generate_otp(db, user):
-    # Generate 6 digit otp
-    code = random.randint(100000, 999999)
-    otp = otp_manager.get_by_user_id(db, user.id)
-    if otp:
-        otp_manager.update(db, otp, {"code": code})
-    else:
-        otp_manager.create(db, {"user_id": user.id, "code": code})
-    return code
 
 
 def sort_email(db, user, type):
@@ -27,13 +15,13 @@ def sort_email(db, user, type):
     if type == "activate":
         template = "email-activation.html"
         subject = "Activate your account"
-        otp = generate_otp(db, user)
+        otp = otp_manager.create(db, {"user_id": user.id}).code
         data = {"template": template, "subject": subject, "otp": otp}
 
     elif type == "reset":
         template = "password-reset.html"
         subject = "Reset your password"
-        otp = generate_otp(db, user)
+        otp = otp_manager.create(db, {"user_id": user.id}).code
         data = {"template": template, "subject": subject, "otp": otp}
 
     elif type == "reset-success":

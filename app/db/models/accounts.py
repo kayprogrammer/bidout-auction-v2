@@ -47,7 +47,7 @@ class User(BaseModel):
         "Otp",
         foreign_keys="Otp.user_id",
         back_populates="user",
-        lazy=True,
+        lazy="select",
         uselist=False,
     )
 

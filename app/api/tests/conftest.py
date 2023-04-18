@@ -8,7 +8,6 @@ from app.db.managers.accounts import (
     user_manager,
 )
 from app.db.managers.listings import category_manager, listing_manager
-from contextvars import ContextVar
 from app.main import app
 from app.api.utils.tokens import (
     create_access_token,
@@ -36,17 +35,13 @@ def sort_client():
 
     db = TestSessionLocal()
 
-    _base_model_session_ctx = ContextVar("testsession")
-
     def inject_db_session(request):
         # Inject db to request context
         request.ctx.db = db
-        request.ctx.testsession_ctx_token = _base_model_session_ctx.set(request.ctx.db)
 
     def close_db_session(request, response):
         # close db session
-        if hasattr(request.ctx, "testsession_ctx_token") and request.ctx.db is not None:
-            _base_model_session_ctx.reset(request.ctx.testsession_ctx_token)
+        if hasattr(request.ctx, "db") and request.ctx.db is not None:
             request.ctx.db.close()
 
     app.register_middleware(inject_db_session, "request")

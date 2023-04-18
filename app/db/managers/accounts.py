@@ -5,6 +5,7 @@ from app.core.security import get_password_hash
 from app.db.managers.base import BaseManager
 from app.db.models.accounts import Jwt, Otp, User
 from uuid import UUID
+import random
 
 
 class UserManager(BaseManager[User]):
@@ -29,6 +30,14 @@ class OtpManager(BaseManager[Otp]):
     def get_by_user_id(self, db: Session, user_id: str) -> Optional[Otp]:
         jwt = db.query(self.model).filter_by(user_id=user_id).first()
         return jwt
+
+    def create(self, db: Session, obj_in) -> Optional[Otp]:
+        code = random.randint(100000, 999999)
+        obj_in.update({"code": code})
+        existing_otp = self.get_by_user_id(db, obj_in["user_id"])
+        if existing_otp:
+            return self.update(db, existing_otp, {"code": code})
+        return super().create(db, obj_in)
 
 
 class JwtManager(BaseManager[Jwt]):
