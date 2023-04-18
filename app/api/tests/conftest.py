@@ -13,8 +13,13 @@ from app.api.utils.tokens import (
     create_access_token,
     create_refresh_token,
 )
-import pytest
+from app.common.middlewares import (
+    inject_current_user,
+    inject_or_remove_session_key,
+)
 
+import pytest
+from .base import CustomSanicTestClient
 
 TEST_DATABASE = f"{settings.SQLALCHEMY_DATABASE_URL}_test"
 
@@ -46,6 +51,9 @@ def sort_client():
 
     app.register_middleware(inject_db_session, "request")
     app.register_middleware(close_db_session, "response")
+    app.register_middleware(inject_current_user, "request")
+    app.register_middleware(inject_or_remove_session_key, "response")
+
     return {"database": db, "app": app}
 
 
@@ -58,7 +66,7 @@ def database(sort_client):
 @pytest.fixture
 def client(sort_client):
     app = sort_client["app"]
-    yield app.test_client
+    yield CustomSanicTestClient(app)
 
 
 @pytest.fixture
@@ -92,10 +100,10 @@ def authorized_client(verified_user, client, database):
     access = create_access_token({"user_id": str(verified_user.id)})
     refresh = create_refresh_token()
     jwt_manager.create(
-        database, {"user_id": verified_user.id, "access": access, "refresh": refresh}
+        database,
+        {"user_id": verified_user.id, "access": access, "refresh": refresh},
     )
-
-    client.headers = {**client.headers, "Bearer": access}
+    client.headers = {"Authorization": f"Bearer {access}"}
     return client
 
 
