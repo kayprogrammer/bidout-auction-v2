@@ -1,3 +1,4 @@
+from sanic_testing.testing import SanicASGITestClient
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -17,9 +18,8 @@ from app.common.middlewares import (
     inject_current_user,
     inject_or_remove_session_key,
 )
-
-import pytest
-from .base import CustomSanicTestClient
+import pytest_asyncio
+import asyncio
 
 TEST_DATABASE = f"{settings.SQLALCHEMY_DATABASE_URL}_test"
 
@@ -33,7 +33,16 @@ Base.metadata.create_all(bind=engine)
 BASE_AUTH_URL_PATH = "/api/v2/auth"
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(scope="session")
+def event_loop():
+    """Overrides pytest default function scoped event loop"""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest_asyncio.fixture(scope="session")
 def sort_client():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -51,26 +60,30 @@ def sort_client():
 
     app.register_middleware(inject_db_session, "request")
     app.register_middleware(close_db_session, "response")
+
+    # re-register middlewares that are dependent on our database
     app.register_middleware(inject_current_user, "request")
     app.register_middleware(inject_or_remove_session_key, "response")
 
     return {"database": db, "app": app}
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(scope="session")
 def database(sort_client):
     db = sort_client["database"]
-    return db
+    yield db
+    db.close()
 
 
-@pytest.fixture
-def client(sort_client):
+@pytest_asyncio.fixture(scope="session")
+async def client(sort_client):
     app = sort_client["app"]
-    yield CustomSanicTestClient(app)
+    async with SanicASGITestClient(app) as client:
+        yield client
 
 
-@pytest.fixture
-def test_user(client, database):
+@pytest_asyncio.fixture(scope="session")
+def test_user(database):
     create_user_dict = {
         "first_name": "Test",
         "last_name": "User",
@@ -81,7 +94,7 @@ def test_user(client, database):
     return user
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(scope="session")
 def verified_user(database):
     create_user_dict = {
         "first_name": "TestUser",
@@ -95,8 +108,8 @@ def verified_user(database):
     return user
 
 
-@pytest.fixture
-def authorized_client(verified_user, client, database):
+@pytest_asyncio.fixture(scope="session")
+async def authorized_client(verified_user, client, database):
     access = create_access_token({"user_id": str(verified_user.id)})
     refresh = create_refresh_token()
     jwt_manager.create(
@@ -107,7 +120,7 @@ def authorized_client(verified_user, client, database):
     return client
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(scope="session")
 def create_listing(auctioneer_id, database):
     # Create Category
     category = category_manager.create(database, {"name": "TestCategory"})
