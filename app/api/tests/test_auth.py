@@ -1,9 +1,7 @@
-from datetime import datetime
-import mock
-
 from app.db.managers.accounts import user_manager, jwt_manager, otp_manager
 from app.api.utils.tokens import create_refresh_token
 import pytest
+import mock
 
 BASE_URL_PATH = "/api/v2/auth"
 
@@ -22,7 +20,7 @@ async def test_register_user(client):
 
     # Verify that a new user can be registered successfully
     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-        request, response = await client.post(f"{BASE_URL_PATH}/register", json=user_in)
+        _, response = await client.post(f"{BASE_URL_PATH}/register", json=user_in)
         assert response.status_code == 201
         assert response.json == {
             "status": "success",
@@ -31,7 +29,7 @@ async def test_register_user(client):
 
     # Verify that a user with the same email cannot be registered again
     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-        request, response = await client.post(f"{BASE_URL_PATH}/register", json=user_in)
+        _, response = await client.post(f"{BASE_URL_PATH}/register", json=user_in)
         assert response.status_code == 422
         assert response.json == {
             "status": "failure",
@@ -46,7 +44,7 @@ async def test_verify_email(client, test_user, database):
     otp = "111111"
 
     # Verify that the email verification fails with an invalid otp
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/verify-email", json={"email": user.email, "otp": otp}
     )
     assert response.status_code == 400
@@ -58,7 +56,7 @@ async def test_verify_email(client, test_user, database):
     # Verify that the email verification succeeds with a valid otp
     otp = otp_manager.create(database, {"user_id": user.id})
     with mock.patch("app.api.utils.emails.send_email") as send_welcome_email_mock:
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/verify-email",
             json={"email": user.email, "otp": otp.code},
         )
@@ -73,11 +71,23 @@ async def test_verify_email(client, test_user, database):
 async def test_resend_verification_email(client, test_user, database):
     user_in = {"email": test_user.email}
 
+    # Verify that an unverified user can get a new email
+    with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
+        # Then, attempt to resend the verification email
+        _, response = await client.post(
+            f"{BASE_URL_PATH}/resend-verification-email", json=user_in
+        )
+        assert response.status_code == 200
+        assert response.json == {
+            "status": "success",
+            "message": "Verification email sent",
+        }
+
     # Verify that a verified user cannot get a new email
     test_user = database.merge(test_user)  # To prevent non persistent session error
     test_user = user_manager.update(database, test_user, {"is_email_verified": True})
     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/resend-verification-email",
             json={"email": test_user.email},
         )
@@ -89,7 +99,7 @@ async def test_resend_verification_email(client, test_user, database):
 
     # Verify that an error is raised when attempting to resend the verification email for a user that doesn't exist
     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/resend-verification-email",
             json={"email": "invalid@example.com"},
         )
@@ -99,26 +109,12 @@ async def test_resend_verification_email(client, test_user, database):
             "message": "Incorrect Email",
         }
 
-    # Verify that an unverified user can get a new email
-    test_user = database.merge(test_user)  # To prevent non persistent session error
-    test_user = user_manager.update(database, test_user, {"is_email_verified": False})
-    with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
-        # Then, attempt to resend the verification email
-        request, response = await client.post(
-            f"{BASE_URL_PATH}/resend-verification-email", json=user_in
-        )
-        assert response.status_code == 200
-        assert response.json == {
-            "status": "success",
-            "message": "Verification email sent",
-        }
-
 
 @pytest.mark.asyncio
-async def test_login(client, database, test_user):
+async def test_login(client, test_user, database):
 
     # Test for invalid credentials
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/login",
         json={"email": "not_registered@email.com", "password": "not_registered"},
     )
@@ -129,7 +125,7 @@ async def test_login(client, database, test_user):
     }
 
     # Test for unverified credentials (email)
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/login",
         json={"email": test_user.email, "password": "testuser123"},
     )
@@ -142,7 +138,7 @@ async def test_login(client, database, test_user):
     # Test for valid credentials and verified email address
     test_user = database.merge(test_user)  # To prevent non persistent session error
     test_user = user_manager.update(database, test_user, {"is_email_verified": True})
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/login",
         json={"email": test_user.email, "password": "testuser123"},
     )
@@ -161,9 +157,10 @@ async def test_refresh_token(client, database, verified_user):
         database,
         {"user_id": str(verified_user.id), "access": "access", "refresh": "refresh"},
     )
+    database.expunge(jwt_obj)
 
     # Test for invalid refresh token (not found)
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/refresh", json={"refresh": "invalid_refresh_token"}
     )
     assert response.status_code == 404
@@ -173,8 +170,8 @@ async def test_refresh_token(client, database, verified_user):
     }
 
     # Test for invalid refresh token (invalid or expired)
-    request, response = await client.post(
-        f"{BASE_URL_PATH}/refresh", json={"refresh": "refresh"}
+    _, response = await client.post(
+        f"{BASE_URL_PATH}/refresh", json={"refresh": jwt_obj.refresh}
     )
     assert response.status_code == 401
     assert response.json == {
@@ -188,7 +185,7 @@ async def test_refresh_token(client, database, verified_user):
     jwt_obj = jwt_manager.update(database, jwt_obj, {"refresh": refresh})
     with mock.patch("app.api.utils.tokens.verify_refresh_token") as mock_verify:
         mock_verify.return_value = True
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/refresh", json={"refresh": jwt_obj.refresh}
         )
         assert response.status_code == 201
@@ -200,8 +197,8 @@ async def test_refresh_token(client, database, verified_user):
 
 
 @pytest.mark.asyncio
-async def test_get_password_otp(client, database, verified_user):
-    email = database.merge(verified_user).email
+async def test_get_password_otp(client, verified_user):
+    email = verified_user.email
 
     password = "testverifieduser123"
     user_in = {"email": email, "password": password}
@@ -210,7 +207,7 @@ async def test_get_password_otp(client, database, verified_user):
         "app.api.utils.emails.send_email"
     ) as send_password_reset_email_mock:
         # Then, attempt to get password reset token
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/request-password-reset-otp", json=user_in
         )
         assert response.status_code == 200
@@ -223,7 +220,7 @@ async def test_get_password_otp(client, database, verified_user):
     with mock.patch(
         "app.api.utils.emails.send_email"
     ) as send_password_reset_email_mock:
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/request-password-reset-otp",
             json={"email": "invalid@example.com"},
         )
@@ -239,7 +236,7 @@ async def test_verify_password_token(client, database, verified_user):
     otp = "111111"
 
     # Verify that the password reset verification fails with an invalid email
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/verify-password-reset-otp",
         json={"email": "invalidemail@example.com", "otp": otp},
     )
@@ -250,7 +247,7 @@ async def test_verify_password_token(client, database, verified_user):
     }
 
     # Verify that the password reset verification fails with an invalid otp
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/verify-password-reset-otp",
         json={"email": verified_user.email, "otp": otp},
     )
@@ -262,7 +259,7 @@ async def test_verify_password_token(client, database, verified_user):
 
     # Verify that the password reset verification succeeds with a valid otp
     otp = otp_manager.create(database, {"user_id": verified_user.id}).code
-    request, response = await client.post(
+    _, response = await client.post(
         f"{BASE_URL_PATH}/verify-password-reset-otp",
         json={"email": verified_user.email, "otp": otp},
     )
@@ -281,7 +278,7 @@ async def test_reset_password(client, verified_user):
     with mock.patch(
         "app.api.utils.emails.send_email"
     ) as password_reset_success_email_mock:
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/set-new-password", json=password_reset_data
         )
         assert response.status_code == 400
@@ -294,7 +291,7 @@ async def test_reset_password(client, verified_user):
     with mock.patch(
         "app.api.utils.emails.send_email"
     ) as password_reset_success_email_mock:
-        request, response = await client.post(
+        _, response = await client.post(
             f"{BASE_URL_PATH}/set-new-password",
             json=password_reset_data,
             cookies={"email": verified_user.email},
@@ -309,7 +306,7 @@ async def test_reset_password(client, verified_user):
 @pytest.mark.asyncio
 async def test_logout(authorized_client):
     # Ensures if authorized user logs out successfully
-    request, response = await authorized_client.get(f"{BASE_URL_PATH}/logout")
+    _, response = await authorized_client.get(f"{BASE_URL_PATH}/logout")
 
     assert response.status_code == 200
     assert response.json == {
@@ -318,7 +315,7 @@ async def test_logout(authorized_client):
     }
 
     # Ensures if unauthorized user cannot log out
-    request, response = await authorized_client.get(
+    _, response = await authorized_client.get(
         f"{BASE_URL_PATH}/logout", headers={"Authorization": "invalid_token"}
     )
     assert response.status_code == 401

@@ -15,4 +15,4 @@ mig:
 	alembic upgrade heads
 
 test:
-	pytest --disable-warnings -vv -x
+	pytest --disable-warnings -vv -x --timeout=10

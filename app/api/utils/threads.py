@@ -10,12 +10,15 @@ class EmailThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        # Run in background
-        message = self.message
-        with smtplib.SMTP_SSL(
-            host=settings.MAIL_SENDER_HOST, port=settings.MAIL_SENDER_PORT
-        ) as server:
-            server.login(settings.MAIL_SENDER_EMAIL, settings.MAIL_SENDER_PASSWORD)
-            server.sendmail(
-                settings.MAIL_SENDER_EMAIL, message["To"], message.as_string()
-            )
+        try:
+            # Run in background
+            message = self.message
+            with smtplib.SMTP_SSL(
+                host=settings.MAIL_SENDER_HOST, port=settings.MAIL_SENDER_PORT
+            ) as server:
+                server.login(settings.MAIL_SENDER_EMAIL, settings.MAIL_SENDER_PASSWORD)
+                server.sendmail(
+                    settings.MAIL_SENDER_EMAIL, message["To"], message.as_string()
+                )
+        except Exception as e:
+            print(f"Email Error - {e}")
