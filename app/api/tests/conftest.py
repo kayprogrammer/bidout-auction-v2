@@ -116,6 +116,21 @@ async def verified_user(database):
 
 
 @pytest_asyncio.fixture
+async def another_verified_user(database):
+    create_user_dict = {
+        "first_name": "AnotherTest",
+        "last_name": "UserVerified",
+        "email": "anothertestverifieduser@example.com",
+        "password": "anothertestverifieduser123",
+        "is_email_verified": True,
+    }
+
+    user = user_manager.create(database, create_user_dict)
+    database.expunge(user)
+    return user
+
+
+@pytest_asyncio.fixture
 async def authorized_client(verified_user, client, database):
     access = create_access_token({"user_id": str(verified_user.id)})
     refresh = create_refresh_token()
@@ -148,6 +163,6 @@ async def create_listing(verified_user, database):
     listing = listing_manager.create(database, listing_dict)
 
     return {
-        "user_id": verified_user.id,
-        "listing_id": listing.id,
+        "user": verified_user,
+        "listing": listing,
     }
