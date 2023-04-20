@@ -9,6 +9,8 @@ from app.db.managers.accounts import (
     user_manager,
 )
 from app.db.managers.listings import category_manager, listing_manager
+from app.db.managers.base import file_manager
+
 from app.main import app
 from app.api.utils.tokens import (
     create_access_token,
@@ -126,22 +128,26 @@ async def authorized_client(verified_user, client, database):
 
 
 @pytest_asyncio.fixture
-async def create_listing(auctioneer_id, database):
+async def create_listing(verified_user, database):
     # Create Category
     category = category_manager.create(database, {"name": "TestCategory"})
 
+    # Create File
+    file = file_manager.create(database, {"resource_type": "image/jpeg"})
+
     # Create Listing
     listing_dict = {
-        "auctioneer_id": auctioneer_id,
+        "auctioneer_id": verified_user.id,
         "name": "New Listing",
         "desc": "New description",
         "category_id": category.id,
         "price": 1000.00,
         "closing_date": datetime.now() + timedelta(days=1),
+        "image_id": file.id,
     }
     listing = listing_manager.create(database, listing_dict)
 
     return {
-        "user_id": auctioneer_id,
+        "user_id": verified_user.id,
         "listing_id": listing.id,
     }
