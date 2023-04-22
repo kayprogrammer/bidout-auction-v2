@@ -105,7 +105,11 @@ class Listing(BaseModel):
                 .filter_by(listing_id=self.id)
                 .scalar()
             )
-            highest_bid = related_bids.filter_by(amount=highest_bid).first().amount
+            highest_bid = related_bids.filter_by(amount=highest_bid).first()
+            if highest_bid:
+                highest_bid = highest_bid.amount
+            else:
+                highest_bid = 0.00
 
         return highest_bid
 

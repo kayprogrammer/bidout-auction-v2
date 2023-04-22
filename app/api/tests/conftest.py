@@ -65,10 +65,6 @@ def sort_client(request):
     app.register_middleware(inject_current_user, "request")
     app.register_middleware(inject_or_remove_session_key, "response")
 
-    def drop_database():
-        Base.metadata.drop_all(bind=engine)
-
-    request.addfinalizer(drop_database)
     yield {"database": db, "app": app}
 
 
@@ -78,6 +74,7 @@ async def database(sort_client):
     Base.metadata.create_all(bind=engine)
     db = sort_client["database"]
     yield db
+    db.close()
 
 
 @pytest_asyncio.fixture
@@ -161,8 +158,5 @@ async def create_listing(verified_user, database):
         "image_id": file.id,
     }
     listing = listing_manager.create(database, listing_dict)
-
-    return {
-        "user": verified_user,
-        "listing": listing,
-    }
+    database.expunge(listing)
+    return {"user": verified_user, "listing": listing, "category": category}

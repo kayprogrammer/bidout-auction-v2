@@ -11,6 +11,7 @@ from app.api.schemas.listings import (
     BidDataSchema,
     BidsResponseSchema,
     BidResponseSchema,
+    ResponseSchema,
 )
 from app.common.responses import CustomResponse
 from app.db.managers.listings import (
@@ -57,7 +58,7 @@ class ListingDetailView(HTTPMethodView):
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
         data = ListingDataSchema.from_orm(listing).dict()
-        return CustomResponse.success(message="Listings fetched", data=data)
+        return CustomResponse.success(message="Listing details fetched", data=data)
 
 
 class ListingsByWatchListView(HTTPMethodView):
@@ -107,6 +108,38 @@ class ListingsByWatchListView(HTTPMethodView):
             message="Listing added to Watchlists", data=data, status_code=201
         )
 
+    @openapi.definition(
+        body=RequestBody({"application/json": CreateWatchlistSchema}, required=True),
+        summary="Remove listing from a users watchlist",
+        description="This endpoint removes a listing from a user's watchlist, authenticated or not.",
+        response={"application/json": ResponseSchema},
+    )
+    @validate_request(CreateWatchlistSchema)
+    async def delete(self, request, **kwargs):
+        data = request.json
+        db = request.ctx.db
+        user = request.ctx.user
+        slug = data.get("slug")
+
+        listing = listing_manager.get_by_slug(db, slug)
+        if not listing:
+            return CustomResponse.error("Listing does not exist!", status_code=404)
+
+        if hasattr(user, "email"):
+            # Here we know its a user object and not a session key string, now we can retrieve id.
+            user = user.id
+
+        watchlist = watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
+            db, user, listing.id
+        )
+        if not watchlist:
+            return CustomResponse.error(
+                "User has no watchlist with such listing!", status_code=404
+            )
+
+        watchlist_manager.delete(db, watchlist)
+        return CustomResponse.success(message="Listing removed from user watchlist")
+
 
 class ListingsByCategoryView(HTTPMethodView):
     @openapi.definition(
@@ -142,7 +175,7 @@ class BidsView(HTTPMethodView):
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
 
-        bids = bid_manager.get_by_listing_id(db, listing.id)
+        bids = bid_manager.get_by_listing_id(db, listing.id)[:3]
         data = [BidDataSchema.from_orm(bid).dict() for bid in bids]
         return CustomResponse.success(message="Listing Bids fetched", data=data)
 
