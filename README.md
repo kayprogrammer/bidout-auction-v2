@@ -12,7 +12,7 @@
 
 * Download this repo or run: 
 ```bash
-    $ git clone git@github.com:kayprogrammer/bidout-auction-v1.git
+    $ git clone git@github.com:kayprogrammer/bidout-auction-v2.git
 ```
 
 #### In the root directory:
