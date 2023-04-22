@@ -1,5 +1,5 @@
 from app.db.managers.accounts import jwt_manager
-from app.db.managers.listings import listing_manager, category_manager, bid_manager
+from app.db.managers.listings import category_manager, bid_manager
 from app.api.utils.tokens import create_access_token, create_refresh_token
 from datetime import datetime, timedelta
 from pytz import UTC

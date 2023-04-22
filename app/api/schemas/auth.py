@@ -1,6 +1,4 @@
 from pydantic import BaseModel, validator, Field, EmailStr
-from app.core.database import SessionLocal
-from app.db.managers.accounts import user_manager
 
 
 class RegisterUserSchema(BaseModel):

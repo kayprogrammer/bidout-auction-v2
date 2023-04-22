@@ -7,7 +7,7 @@ from .base import ResponseSchema
 
 from app.db.managers.accounts import user_manager
 from app.db.managers.base import file_manager
-from app.db.managers.listings import listing_manager, category_manager
+from app.db.managers.listings import category_manager
 
 from app.api.utils.file_processors import FileProcessor
 
