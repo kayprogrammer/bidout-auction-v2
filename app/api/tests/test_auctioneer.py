@@ -9,6 +9,41 @@ BASE_URL_PATH = "/api/v2/auctioneer"
 
 
 @pytest.mark.asyncio
+async def test_profile_view(authorized_client, verified_user):
+    _, response = await authorized_client.get(f"{BASE_URL_PATH}/")
+    assert response.status_code == 200
+    assert response.json == {
+        "status": "success",
+        "message": "User details fetched!",
+        "data": {
+            "first_name": verified_user.first_name,
+            "last_name": verified_user.last_name,
+            "avatar": mock.ANY,
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_profile_update(authorized_client):
+    user_dict = {
+        "first_name": "VerifiedUser",
+        "last_name": "Update",
+        "file_type": "image/jpeg",
+    }
+    _, response = await authorized_client.put(f"{BASE_URL_PATH}/", json=user_dict)
+    assert response.status_code == 200
+    assert response.json == {
+        "status": "success",
+        "message": "User updated!",
+        "data": {
+            "first_name": "VerifiedUser",
+            "last_name": "Update",
+            "upload_url": mock.ANY,
+        },
+    }
+
+
+@pytest.mark.asyncio
 async def test_auctioneer_retrieve_listings(authorized_client, create_listing):
     # Verify that all listings by a particular auctioneer is fetched
     _, response = await authorized_client.get(f"{BASE_URL_PATH}/listings")
