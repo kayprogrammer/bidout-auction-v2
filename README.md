@@ -39,6 +39,15 @@ OR
     $ make build
 ```
 
+- Test Coverage
+```bash
+    $ pytest --disable-warnings -vv
+```
+OR
+```bash
+    $ make test
+```
+
 ## Docs
 #### Swagger: [Documentation](https://swagger.io/docs/) 
 

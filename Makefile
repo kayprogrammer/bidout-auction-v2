@@ -5,6 +5,18 @@ ENV_FILE_PARAM = --env-file .env
 
 endif
 
+build:
+	docker-compose up --build -d --remove-orphans
+
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
+show-logs:
+	docker-compose logs
+
 serv:
 	sanic app.main:app --debug --reload
 
@@ -16,3 +28,6 @@ mig:
 
 test:
 	pytest --verbose --disable-warnings -vv -x --timeout=10
+
+format:
+	black .
