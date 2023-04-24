@@ -16,6 +16,5 @@ python initials/initial_data.py
 
 
 
-# starts application
-
+# start application
 sanic app.main:app --debug --reload

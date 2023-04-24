@@ -1,6 +1,6 @@
 import logging
 
-from .data_script import CreateData
+from initials.data_script import CreateData
 from app.core.database import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
