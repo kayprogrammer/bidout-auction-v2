@@ -28,7 +28,7 @@ outcome==1.2.0
 packaging==23.1
 passlib==1.7.4
 pluggy==1.0.0
-psycopg2-binary==2.9.6
+psycopg2==2.9.6
 pyasn1==0.4.8
 pydantic==1.10.7
 PyMySQL==1.0.3

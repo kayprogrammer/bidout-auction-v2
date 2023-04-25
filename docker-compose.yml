@@ -1,14 +1,5 @@
 version: "3.8"
 
-# For testing if project is alive on http (port 80) only!!! (without traefic)
-#
-# docker-compose -f docker-compose.debug.yml up -d
-#
-# It should be available on HOST_NAME adress, for example
-# 1. http://localhost
-# 2. http://example.com
-# Depend on using it with your machine or VM
-
 services:
   db:
     restart: always

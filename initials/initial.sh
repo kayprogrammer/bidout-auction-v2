@@ -17,4 +17,4 @@ python initials/initial_data.py
 
 
 # start application
-sanic app.main:app --debug --reload
+sanic app.main:app --host 0.0.0.0 --port 8000 --debug --reload 

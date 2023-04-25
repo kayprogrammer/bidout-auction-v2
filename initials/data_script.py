@@ -11,15 +11,15 @@ class CreateData(object):
     def create_superuser(self, db) -> None:
         superuser = user_manager.get_by_email(db, settings.FIRST_SUPERUSER_EMAIL)
         user_dict = {
-            "first_name": "Super",
-            "last_name": "User",
+            "first_name": "Test",
+            "last_name": "Admin",
             "email": settings.FIRST_SUPERUSER_EMAIL,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
             "is_superuser": True,
             "is_staff": True,
         }
         if not superuser:
-            user_manager.create(db, user_dict)
+            superuser = user_manager.create(db, user_dict)
         return superuser
 
     def create_auctioneer(self, db) -> None:
@@ -31,5 +31,5 @@ class CreateData(object):
             "password": settings.FIRST_AUCTIONEER_PASSWORD,
         }
         if not auctioneer:
-            user_manager.create(db, user_dict)
+            auctioneer = user_manager.create(db, user_dict)
         return auctioneer

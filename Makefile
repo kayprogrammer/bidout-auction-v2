@@ -12,7 +12,7 @@ up:
 	docker-compose up -d
 
 down:
-	docker-compose down
+	docker-compose down --volumes
 
 show-logs:
 	docker-compose logs
