@@ -31,7 +31,7 @@ class SiteDetail(BaseModel):
 class Suscriber(BaseModel):
     __tablename__ = "suscribers"
 
-    email = Column(String)
+    email = Column(String, unique=True)
     exported = Column(Boolean, default=False)
 
     def __repr__(self):
@@ -44,7 +44,6 @@ class Review(BaseModel):
     reviewer_id = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
-        unique=True,
     )
     show = Column(Boolean, default=False)
     text = Column(String(100))

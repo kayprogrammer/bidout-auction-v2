@@ -15,12 +15,14 @@ class SiteDetailManager(BaseManager[SiteDetail]):
 
 class SuscriberManager(BaseManager[Suscriber]):
     def get_by_email(self, db: Session, email: str) -> Optional[Suscriber]:
-        suscriber = db.query(self.model).filter(email=email).first()
+        suscriber = db.query(self.model).filter_by(email=email).first()
         return suscriber
 
 
 class ReviewManager(BaseManager[Review]):
-    pass
+    def get_active(self, db: Session) -> Optional[Review]:
+        reviews = db.query(self.model).filter_by(show=True).all()
+        return reviews
 
 
 sitedetail_manager = SiteDetailManager(SiteDetail)
