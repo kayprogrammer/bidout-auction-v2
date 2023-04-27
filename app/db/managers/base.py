@@ -41,6 +41,11 @@ class BaseManager(Generic[ModelType]):
         db.refresh(obj)
         return obj
 
+    def bulk_create(self, db: Session, obj_in: list) -> Optional[bool]:
+        db.bulk_insert_mappings(self.model, obj_in, render_nulls=True)
+        db.commit()
+        return True
+
     def update(
         self, db: Session, db_obj: Optional[ModelType], obj_in: Optional[ModelType]
     ) -> Optional[ModelType]:

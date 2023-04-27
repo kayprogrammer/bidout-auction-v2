@@ -144,11 +144,6 @@ class WatchListManager(BaseManager[WatchList]):
             return existing_watchlist
         return super().create(db, obj_in)
 
-    def bulk_create(self, db: Session, obj_in: list):
-        db.bulk_insert_mappings(self.model, obj_in, render_nulls=True)
-        db.commit()
-        return True
-
 
 class BidManager(BaseManager[Bid]):
     def get_by_user_id(self, db: Session, user_id: UUID) -> Optional[List[Bid]]:

@@ -4,6 +4,7 @@ from app.core.database import Base, engine
 from app.db.models.base import *
 from app.db.models.accounts import *
 from app.db.models.listings import *
+from app.db.models.general import *
 
 from app.core.config import settings
 
