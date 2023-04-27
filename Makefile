@@ -12,7 +12,7 @@ up:
 	docker-compose up -d
 
 down:
-	docker-compose down --volumes
+	docker-compose down
 
 show-logs:
 	docker-compose logs
@@ -28,6 +28,3 @@ mig:
 
 test:
 	pytest --verbose --disable-warnings -vv -x --timeout=10
-
-format:
-	black .

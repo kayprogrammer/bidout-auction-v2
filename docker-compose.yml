@@ -5,7 +5,7 @@ services:
     restart: always
     image: postgres:13-alpine
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -43,3 +43,6 @@ services:
       - "5050:80"
     depends_on:
       - db
+
+volumes:
+  postgres_data:

@@ -1,20 +1,16 @@
 #! /usr/bin/env bash
 
-# Let the DB start
+# Initialize database
 python initials/db_starter.py
 
-# Run migration
+# Run migrations
 alembic upgrade heads
 
-# add any inital data
-
+# Create initial data
 python initials/initial_data.py
 
-# run tests
-# python -m pytest app/tests
+# Run tests
+# pytest --verbose --disable-warnings -vv -x --timeout=10
 
-
-
-
-# start application
+# Start application
 sanic app.main:app --host 0.0.0.0 --port 8000 --debug --reload 

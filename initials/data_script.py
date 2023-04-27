@@ -17,6 +17,7 @@ class CreateData(object):
             "password": settings.FIRST_SUPERUSER_PASSWORD,
             "is_superuser": True,
             "is_staff": True,
+            "is_email_verified": True,
         }
         if not superuser:
             superuser = user_manager.create(db, user_dict)
@@ -29,6 +30,7 @@ class CreateData(object):
             "last_name": "Auctioneer",
             "email": settings.FIRST_AUCTIONEER_EMAIL,
             "password": settings.FIRST_AUCTIONEER_PASSWORD,
+            "is_email_verified": True,
         }
         if not auctioneer:
             auctioneer = user_manager.create(db, user_dict)
