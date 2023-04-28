@@ -1,4 +1,4 @@
-# BidOut Auction V2 (WORK IN PROGRESS)
+# BidOut Auction V2
 
 ![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/sanic.png?raw=true)
 
