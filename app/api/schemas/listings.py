@@ -27,7 +27,7 @@ class ListingDataSchema(BaseModel):
 
     auctioneer_id: UUID = Field(..., example="Ignore this")
     auctioneer: Optional[dict] = Field(
-        ..., example={"name": "John Doe", "avatar": "https://image.url"}
+        None, example={"name": "John Doe", "avatar": "https://image.url"}
     )
 
     slug: Optional[str]
@@ -113,7 +113,7 @@ class BidDataSchema(BaseModel):
     id: UUID
     user_id: UUID = Field(..., example="Ignore this")
     user: Optional[dict] = Field(
-        ..., example={"name": "John Doe", "avatar": "https://image.url"}
+        None, example={"name": "John Doe", "avatar": "https://image.url"}
     )
     amount: Decimal = Field(..., example=1000.00, decimal_places=2)
     created_at: datetime

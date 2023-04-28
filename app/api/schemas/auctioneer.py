@@ -53,7 +53,7 @@ class CreateListingResponseDataSchema(BaseModel):
     name: str
     auctioneer_id: UUID = Field(..., example="Ignore this")
     auctioneer: Optional[dict] = Field(
-        ..., example={"name": "John Doe", "avatar": "https://image.url"}
+        None, example={"name": "John Doe", "avatar": "https://image.url"}
     )
 
     slug: str
@@ -187,7 +187,7 @@ class ProfileDataSchema(BaseModel):
     first_name: str
     last_name: str
     avatar_id: Optional[UUID] = Field(
-        ..., example="Ignore this"
+        None, example="Ignore this"
     )  # This must be above avatar field
     avatar: Optional[Any]
 

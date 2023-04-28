@@ -50,7 +50,9 @@ class SuscriberCreateView(HTTPMethodView):
             suscriber = suscriber_manager.create(db, {"email": email})
 
         data = SuscriberSchema.from_orm(suscriber).dict()
-        return CustomResponse.success(message="Suscriber added successfully", data=data)
+        return CustomResponse.success(
+            message="Suscriber added successfully", data=data, status_code=201
+        )
 
 
 class ReviewsView(HTTPMethodView):

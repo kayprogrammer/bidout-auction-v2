@@ -20,8 +20,13 @@ show-logs:
 serv:
 	sanic app.main:app --debug --reload
 
-mmig:
-	alembic revision --autogenerate 
+mmig: # run with "make mmig" or "make mmig message='migration message'"
+	if [ -z "$(message)" ]; then \
+		alembic revision --autogenerate; \
+	else \
+		alembic revision --autogenerate -m "$(message)"; \
+	fi
+	
 
 mig:
 	alembic upgrade heads

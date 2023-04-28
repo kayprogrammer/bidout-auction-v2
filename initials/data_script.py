@@ -61,23 +61,26 @@ class CreateData(object):
         return sitedetail
 
     def create_reviews(self, db, reviewer_id) -> None:
-        reviews = review_manager.get_all(db)
-        if reviews.count() < 1:
-            reviews = review_manager.bulk_create(db, self.review_mappings(reviewer_id))
-        return reviews
+        reviews_count = review_manager.get_count(db)
+        if reviews_count < 1:
+            review_manager.bulk_create(db, self.review_mappings(reviewer_id))
+        pass
 
     def review_mappings(self, reviewer_id):
         return [
             {
                 "reviewer_id": reviewer_id,
                 "text": "Maecenas vitae porttitor neque, ac porttitor nunc. Duis venenatis lacinia libero. Nam nec augue ut nunc vulputate tincidunt at suscipit nunc.",
+                "show": True,
             },
             {
                 "reviewer_id": reviewer_id,
                 "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                "show": True,
             },
             {
                 "reviewer_id": reviewer_id,
                 "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.",
+                "show": True,
             },
         ]

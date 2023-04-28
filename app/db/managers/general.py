@@ -24,6 +24,10 @@ class ReviewManager(BaseManager[Review]):
         reviews = db.query(self.model).filter_by(show=True).all()
         return reviews
 
+    def get_count(self, db: Session) -> Optional[int]:
+        reviews_count = db.query(self.model).filter_by(show=True).count()
+        return reviews_count
+
 
 sitedetail_manager = SiteDetailManager(SiteDetail)
 suscriber_manager = SuscriberManager(Suscriber)

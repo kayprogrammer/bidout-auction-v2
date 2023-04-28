@@ -46,7 +46,7 @@ class Review(BaseModel):
         ForeignKey("users.id", ondelete="CASCADE"),
     )
     show = Column(Boolean, default=False)
-    text = Column(String(100))
+    text = Column(String(200))
 
     def __repr__(self):
         return self.reviewer_id
