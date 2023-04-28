@@ -57,7 +57,7 @@ class ReviewsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve site reviews",
         description="This endpoint retrieves a few reviews of the application",
-        response={"application/json": ReviewsResponseSchema.schema_json()},
+        response={"application/json": ReviewsResponseSchema},
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db

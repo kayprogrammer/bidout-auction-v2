@@ -51,7 +51,7 @@ class CreateListingSchema(BaseModel):
 
 class CreateListingResponseDataSchema(BaseModel):
     name: str
-    auctioneer_id: UUID
+    auctioneer_id: UUID = Field(..., example="Ignore this")
     auctioneer: Optional[dict] = Field(
         ..., example={"name": "John Doe", "avatar": "https://image.url"}
     )
@@ -59,14 +59,14 @@ class CreateListingResponseDataSchema(BaseModel):
     slug: str
     desc: str
 
-    category_id: UUID
+    category_id: UUID = Field(..., example="Ignore this")
     category: Optional[str]
 
     price: int
     closing_date: Any
     active: bool
     bids_count: int
-    image_id: UUID
+    image_id: UUID = Field(..., example="Ignore this")
     upload_url: Optional[str]
 
     @validator("upload_url", always=True)
@@ -154,7 +154,7 @@ class UpdateProfileSchema(BaseModel):
 class UpdateProfileResponseDataSchema(BaseModel):
     first_name: str
     last_name: str
-    avatar_id: UUID
+    avatar_id: UUID = Field(..., example="Ignore this")
     upload_url: Optional[str]
 
     @validator("upload_url", always=True)
@@ -186,7 +186,9 @@ class UpdateProfileResponseSchema(ResponseSchema):
 class ProfileDataSchema(BaseModel):
     first_name: str
     last_name: str
-    avatar_id: Optional[UUID]  # This must be above avatar field
+    avatar_id: Optional[UUID] = Field(
+        ..., example="Ignore this"
+    )  # This must be above avatar field
     avatar: Optional[Any]
 
     @validator("avatar", always=True)

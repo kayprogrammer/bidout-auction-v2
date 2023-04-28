@@ -25,7 +25,7 @@ class CreateWatchlistSchema(BaseModel):
 class ListingDataSchema(BaseModel):
     name: str
 
-    auctioneer_id: UUID
+    auctioneer_id: UUID = Field(..., example="Ignore this")
     auctioneer: Optional[dict] = Field(
         ..., example={"name": "John Doe", "avatar": "https://image.url"}
     )
@@ -33,14 +33,14 @@ class ListingDataSchema(BaseModel):
     slug: Optional[str]
     desc: str
 
-    category_id: UUID
+    category_id: UUID = Field(..., example="Ignore this")
     category: Optional[str]
 
     price: Decimal = Field(..., example=1000.00, decimal_places=2)
     closing_date: datetime
     active: bool
     bids_count: int
-    image_id: UUID
+    image_id: UUID = Field(..., example="Ignore this")
     image: Optional[Any]
 
     @validator("auctioneer", always=True)
@@ -111,7 +111,7 @@ class CreateBidSchema(BaseModel):
 
 class BidDataSchema(BaseModel):
     id: UUID
-    user_id: UUID
+    user_id: UUID = Field(..., example="Ignore this")
     user: Optional[dict] = Field(
         ..., example={"name": "John Doe", "avatar": "https://image.url"}
     )
