@@ -1,5 +1,5 @@
 from pydantic import BaseModel, validator, Field, EmailStr
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 from app.api.utils.file_processors import FileProcessor
@@ -31,7 +31,7 @@ class SiteDetailResponseSchema(ResponseSchema):
 
 # Suscribers
 class SuscriberSchema(BaseModel):
-    email: EmailStr = Field("johndoe@example.com")
+    email: EmailStr = Field(..., example="johndoe@example.com")
 
     class Config:
         orm_mode = True
@@ -45,14 +45,17 @@ class SuscriberResponseSchema(ResponseSchema):
 
 # Reviews
 class ReviewsDataSchema(BaseModel):
-    reviewer_id: UUID
-    reviewer: Optional[dict]
+    reviewer_id: UUID = Field(..., dict=False)
+    reviewer: Optional[dict] = Field(
+        None, example={"name": "John Doe", "avatar": "https://image.url"}
+    )
     text: str
 
     @validator("reviewer", always=True)
     def show_reviewer(cls, v, values):
         db = SessionLocal()
         reviewer_id = values.get("reviewer_id")
+        print(reviewer_id)
         reviewer = user_manager.get_by_id(db, reviewer_id)
         values.pop("reviewer_id", None)
         if reviewer:
@@ -70,10 +73,17 @@ class ReviewsDataSchema(BaseModel):
 
     class Config:
         orm_mode = True
+        allow_population_by_field_name = True
+
+    def dict(self, *args, **kwargs):
+        print(kwargs)
+        kwargs.pop("exclude_defaults", None)
+        return super().dict(*args, exclude_defaults=True, **kwargs)
 
 
 class ReviewsResponseSchema(ResponseSchema):
-    data: SiteDetailDataSchema
+    data: List[ReviewsDataSchema]
 
 
 # ---------------------------------
+print(ReviewsDataSchema.schema_json())

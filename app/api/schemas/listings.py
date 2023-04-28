@@ -19,14 +19,16 @@ from decimal import Decimal
 
 
 class CreateWatchlistSchema(BaseModel):
-    slug: str = Field("listing_slug")
+    slug: str = Field(..., example="listing_slug")
 
 
 class ListingDataSchema(BaseModel):
     name: str
 
     auctioneer_id: UUID
-    auctioneer: Optional[dict]
+    auctioneer: Optional[dict] = Field(
+        ..., example={"name": "John Doe", "avatar": "https://image.url"}
+    )
 
     slug: Optional[str]
     desc: str
@@ -34,7 +36,7 @@ class ListingDataSchema(BaseModel):
     category_id: UUID
     category: Optional[str]
 
-    price: Decimal = Field(1000.00, decimal_places=2)
+    price: Decimal = Field(..., example=1000.00, decimal_places=2)
     closing_date: datetime
     active: bool
     bids_count: int
@@ -104,14 +106,16 @@ class ListingsResponseSchema(ResponseSchema):
 
 # BIDS #
 class CreateBidSchema(BaseModel):
-    amount: Decimal = Field(1000.00, decimal_places=2)
+    amount: Decimal = Field(..., example=1000.00, decimal_places=2)
 
 
 class BidDataSchema(BaseModel):
     id: UUID
     user_id: UUID
-    user: Optional[dict]
-    amount: Decimal = Field(1000.00, decimal_places=2)
+    user: Optional[dict] = Field(
+        ..., example={"name": "John Doe", "avatar": "https://image.url"}
+    )
+    amount: Decimal = Field(..., example=1000.00, decimal_places=2)
     created_at: datetime
     updated_at: datetime
 

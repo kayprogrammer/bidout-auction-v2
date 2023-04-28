@@ -57,7 +57,7 @@ class ReviewsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve site reviews",
         description="This endpoint retrieves a few reviews of the application",
-        response={"application/json": ReviewsResponseSchema},
+        response={"application/json": ReviewsResponseSchema.schema_json()},
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
@@ -67,5 +67,5 @@ class ReviewsView(HTTPMethodView):
 
 
 general_router.add_route(SiteDetailView.as_view(), "/site-detail")
-general_router.add_route(SuscriberCreateView.as_view(), "/suscriber")
+general_router.add_route(SuscriberCreateView.as_view(), "/suscribe")
 general_router.add_route(ReviewsView.as_view(), "/reviews")

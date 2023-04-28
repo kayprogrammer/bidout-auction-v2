@@ -18,12 +18,12 @@ from decimal import Decimal
 
 
 class CreateListingSchema(BaseModel):
-    name: StrictStr = Field("Product name", max_length=70)
-    desc: str = Field("Product description")
-    category: Optional[StrictStr] = Field("category_slug")
-    price: Decimal = Field(1000.00, decimal_places=2)
+    name: StrictStr = Field(..., example="Product name", max_length=70)
+    desc: str = Field(..., example="Product description")
+    category: Optional[StrictStr] = Field(..., example="category_slug")
+    price: Decimal = Field(..., example=1000.00, decimal_places=2)
     closing_date: datetime
-    file_type: str = Field("image/jpeg")
+    file_type: str = Field(..., example="image/jpeg")
 
     @validator("closing_date")
     def validate_closing_date(cls, v):
@@ -52,7 +52,9 @@ class CreateListingSchema(BaseModel):
 class CreateListingResponseDataSchema(BaseModel):
     name: str
     auctioneer_id: UUID
-    auctioneer: Optional[dict]
+    auctioneer: Optional[dict] = Field(
+        ..., example={"name": "John Doe", "avatar": "https://image.url"}
+    )
 
     slug: str
     desc: str
@@ -126,9 +128,9 @@ class CreateListingResponseSchema(ResponseSchema):
 
 
 class UpdateProfileSchema(BaseModel):
-    first_name: str = Field("John", max_length=50)
-    last_name: str = Field("Doe", max_length=50)
-    file_type: str = Field("image/png")
+    first_name: str = Field(..., example="John", max_length=50)
+    last_name: str = Field(..., example="Doe", max_length=50)
+    file_type: str = Field(..., example="image/png")
 
     @validator("first_name", "last_name")
     def validate_name(cls, v):

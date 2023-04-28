@@ -2,10 +2,10 @@ from pydantic import BaseModel, validator, Field, EmailStr
 
 
 class RegisterUserSchema(BaseModel):
-    first_name: str = Field("John", max_length=50)
-    last_name: str = Field("Doe", max_length=50)
-    email: EmailStr = Field("johndoe@example.com")
-    password: str = Field("strongpassword", min_length=8)
+    first_name: str = Field(..., example="John", max_length=50)
+    last_name: str = Field(..., example="Doe", max_length=50)
+    email: EmailStr = Field(..., example="johndoe@example.com")
+    password: str = Field(..., example="strongpassword", min_length=8)
 
     @validator("first_name", "last_name")
     def validate_name(cls, v):
@@ -21,16 +21,16 @@ class RegisterUserSchema(BaseModel):
 
 
 class VerifyOtpSchema(BaseModel):
-    email: EmailStr = Field("johndoe@example.com")
+    email: EmailStr = Field(..., example="johndoe@example.com")
     otp: int
 
 
 class RequestOtpSchema(BaseModel):
-    email: EmailStr = Field("johndoe@example.com")
+    email: EmailStr = Field(..., example="johndoe@example.com")
 
 
 class SetNewPasswordSchema(BaseModel):
-    password: str = Field("newstrongpassword", min_length=8)
+    password: str = Field(..., example="newstrongpassword", min_length=8)
 
     class Config:
         error_msg_templates = {
@@ -39,9 +39,12 @@ class SetNewPasswordSchema(BaseModel):
 
 
 class LoginUserSchema(BaseModel):
-    email: EmailStr = Field("johndoe@example.com")
-    password: str = Field("password")
+    email: EmailStr = Field(..., example="johndoe@example.com")
+    password: str = Field(..., example="password")
 
 
 class RefreshTokensSchema(BaseModel):
-    refresh: str
+    refresh: str = Field(
+        ...,
+        example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+    )
