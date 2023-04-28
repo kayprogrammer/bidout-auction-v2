@@ -58,3 +58,5 @@ OR
 ![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display3.png?raw=true)
 
 ![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display4.png?raw=true)
+
+![alt text](https://github.com/kayprogrammer/bidout-auction-v2/blob/main/display/display5.png?raw=true)
