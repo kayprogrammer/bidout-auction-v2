@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Generic, List, Optional, Type, TypeVar
 from uuid import UUID
 
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.core.database import Base
@@ -42,7 +43,7 @@ class BaseManager(Generic[ModelType]):
         return obj
 
     def bulk_create(self, db: Session, obj_in: list) -> Optional[bool]:
-        db.bulk_insert_mappings(self.model, obj_in, render_nulls=True)
+        db.execute(insert(self.model).values(obj_in).on_conflict_do_nothing())
         db.commit()
         return True
 
