@@ -6,11 +6,18 @@ class RegisterUserSchema(BaseModel):
     last_name: str = Field(..., example="Doe", max_length=50)
     email: EmailStr = Field(..., example="johndoe@example.com")
     password: str = Field(..., example="strongpassword", min_length=8)
+    terms_agreement: bool
 
     @validator("first_name", "last_name")
     def validate_name(cls, v):
         if len(v.split(" ")) > 1:
             raise ValueError("No spacing allowed")
+        return v
+
+    @validator("terms_agreement")
+    def validate_terms_agreement(cls, v):
+        if not v:
+            raise ValueError("You must agree to terms and conditions")
         return v
 
     class Config:

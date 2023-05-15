@@ -1,27 +1,21 @@
-from typing import Iterable
 from app.api.utils.tokens import decodeJWT
 from app.db.managers.base import user_session_manager
 from app.db.models.accounts import User
-
-
-def _add_cors_headers(response, methods: Iterable[str]) -> None:
-    allow_methods = list(set(methods))
-    if "OPTIONS" not in allow_methods:
-        allow_methods.append("OPTIONS")
-    headers = {
-        "Access-Control-Allow-Methods": ",".join(allow_methods),
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Headers": (
-            "origin, content-type, accept, " "authorization, x-csrf-token, x-request-id"
-        ),
-    }
-    response.headers.extend(headers)
+from app.core.config import settings
 
 
 def add_cors_headers(request, response):
-    if request.method != "OPTIONS":
-        methods = [method for method in request.route.methods]
-        _add_cors_headers(response, methods)
+    origin = request.headers.get("origin")
+    allowed_origins = settings.CORS_ALLOWED_ORIGINS
+    allowed_origin = origin if origin in allowed_origins else allowed_origins[0]
+
+    headers = {
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Origin": allowed_origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Headers": "origin, content-type, accept, authorization, x-xsrf-token, x-request-id",
+    }
+    response.headers.extend(headers)
 
 
 class RequestUserObject(object):
@@ -64,7 +58,7 @@ def inject_current_user(request):
 
 
 def inject_or_remove_session_key(request, response):
-    # Add or remoe session key to cookies based on authorization status.
+    # Add or remove session key to cookies based on authorization status.
     # This cannot be done in the inject_current_user because cookies are added via responses.
 
     db = request.ctx.db

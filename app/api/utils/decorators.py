@@ -1,7 +1,6 @@
 from functools import wraps
 from app.common.responses import CustomResponse
-from sanic import json, Request
-from pydantic import ValidationError
+from sanic import Request
 from sanic.exceptions import SanicException
 
 
@@ -35,13 +34,10 @@ def validate_request(schema):
                 raise SanicException(
                     message="Invalid request. Missing body", status_code=400
                 )
-            try:
-                data = schema(**request.json)
-                data_dict = data.dict()
-                request.json.update(data_dict)
-                kwargs.update(data_dict)
-            except ValidationError as e:
-                return json({"type": "pydantic", "error": e.errors()}, status=422)
+            data = schema(**request.json)
+            data_dict = data.dict()
+            request.json.update(data_dict)
+            kwargs.update(data_dict)
             return await f(request, *args, **kwargs)
 
         return decorated_function

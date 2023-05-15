@@ -29,7 +29,10 @@ mmig: # run with "make mmig" or "make mmig message='migration message'"
 	
 
 mig:
-	alembic upgrade heads
+	alembic upgrade heads && python initials/initial_data.py
 
 test:
 	pytest --verbose --disable-warnings -vv -x --timeout=10
+
+requirements:
+	pip install -r requirements.txt

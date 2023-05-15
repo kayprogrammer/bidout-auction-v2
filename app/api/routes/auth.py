@@ -38,7 +38,7 @@ class RegisterView(HTTPMethodView):
         response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
-        db = request.ctx.db
+        db = request.ctx.db.a
         data = request.json
 
         # Check for existing user
@@ -57,7 +57,9 @@ class RegisterView(HTTPMethodView):
         send_email(request, db, user, "activate")
 
         return CustomResponse.success(
-            message="Registration successful", status_code=201
+            message="Registration successful",
+            data={"email": user.email},
+            status_code=201,
         )
 
 

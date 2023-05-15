@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
-from pydantic import AnyHttpUrl, AnyUrl, BaseSettings, EmailStr, validator
+from pydantic import AnyUrl, BaseSettings, EmailStr, validator
 
 PROJECT_DIR = Path(__file__).parent.parent.parent
 
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # PROJECT DETAILS
     PROJECT_NAME: str
     FRONTEND_URL: str
-    CORS_ALLOWED_ORIGINS: str
+    CORS_ALLOWED_ORIGINS: Any
 
     # POSTGRESQL
     POSTGRES_USER: str
@@ -74,6 +74,10 @@ class Settings(BaseSettings):
             port=values.get("POSTGRES_PORT"),
             path=f"/{values.get('POSTGRES_DB')}",
         )
+
+    @validator("CORS_ALLOWED_ORIGINS", pre=True)
+    def assemble_cors_origins(cls, v):
+        return v.split()
 
     class Config:
         env_file = f"{PROJECT_DIR}/.env"

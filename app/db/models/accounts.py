@@ -25,6 +25,7 @@ class User(BaseModel):
     is_email_verified = Column(Boolean(), default=False)
     is_superuser = Column(Boolean(), default=False)
     is_staff = Column(Boolean(), default=False)
+    terms_agreement = Column(Boolean(), default=False)
 
     avatar_id = Column(
         UUID(as_uuid=True),
