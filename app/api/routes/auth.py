@@ -38,7 +38,7 @@ class RegisterView(HTTPMethodView):
         response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
-        db = request.ctx.db.a
+        db = request.ctx.db
         data = request.json
 
         # Check for existing user
