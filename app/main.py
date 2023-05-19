@@ -49,7 +49,7 @@ def create_app() -> Sanic:
     app.ext.openapi.secured("token")
     # --------------------------
     # REGISTER MIDDLEWARES
-    app.register_middleware(add_cors_headers, "response")
+    app.register_middleware(add_cors_headers, "response", priority=99)
     app.register_middleware(inject_db_session, "request")
     app.register_middleware(close_db_session, "response")
     app.register_middleware(inject_current_user, "request")

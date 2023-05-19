@@ -37,6 +37,8 @@ class RequestOtpSchema(BaseModel):
 
 
 class SetNewPasswordSchema(BaseModel):
+    email: EmailStr = Field(..., example="johndoe@example.com")
+    otp: int
     password: str = Field(..., example="newstrongpassword", min_length=8)
 
     class Config:

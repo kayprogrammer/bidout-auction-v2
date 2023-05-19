@@ -142,60 +142,38 @@ class SendPasswordResetOtpView(HTTPMethodView):
         return CustomResponse.success(message="Password otp sent")
 
 
-class VerifyPasswordResetOtpView(HTTPMethodView):
-    decorators = [validate_request(VerifyOtpSchema)]
-
-    @openapi.definition(
-        body=RequestBody({"application/json": VerifyOtpSchema}, required=True),
-        summary="Verify Password Reset Otp",
-        description="This endpoint verifies the password reset otp",
-        response={"application/json": ResponseSchema},
-    )
-    async def post(self, request, **kwargs):
-        db = request.ctx.db
-        data = request.json
-        user_by_email = user_manager.get_by_email(db, data["email"])
-        if not user_by_email:
-            return CustomResponse.error("Incorrect Email", status_code=404)
-
-        otp = otp_manager.get_by_user_id(db, user_by_email.id)
-        if not otp or otp.code != data["otp"]:
-            return CustomResponse.error("Incorrect Otp")
-        if otp.check_expiration():
-            return CustomResponse.error("Expired Otp")
-
-        response = CustomResponse.success(message="Otp verified successfully")
-        response.add_cookie("email", user_by_email.email, max_age=900)
-        return response
-
-
 class SetNewPasswordView(HTTPMethodView):
     decorators = [validate_request(SetNewPasswordSchema)]
 
     @openapi.definition(
         body=RequestBody({"application/json": SetNewPasswordSchema}, required=True),
         summary="Set New Password",
-        description="This endpoint works only when the reset otp has been successfully verified within the same request",
+        description="This endpoint verifies the password reset otp",
         response={"application/json": ResponseSchema},
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        email = request.cookies.get("email")
-        if not email:
-            return CustomResponse.error("Reset otp is not verified yet!")
-        password = request.json["password"]
+        data = request.json
+        email = data["email"]
+        otp_code = data["otp"]
+        password = data["password"]
+
         user_by_email = user_manager.get_by_email(db, email)
         if not user_by_email:
-            return CustomResponse.error("Something went wrong", status_code=500)
+            return CustomResponse.error("Incorrect Email", status_code=404)
+
+        otp = otp_manager.get_by_user_id(db, user_by_email.id)
+        if not otp or otp.code != otp_code:
+            return CustomResponse.error("Incorrect Otp")
+        if otp.check_expiration():
+            return CustomResponse.error("Expired Otp")
 
         user_manager.update(db, user_by_email, {"password": password})
 
         # Send password reset success email
         send_email(request, db, user_by_email, "reset-success")
 
-        response = CustomResponse.success(message="Password reset successful")
-        response.delete_cookie("email")
-        return response
+        return CustomResponse.success(message="Password reset successful")
 
 
 class LoginView(HTTPMethodView):
@@ -306,9 +284,6 @@ auth_router.add_route(
     ResendVerificationEmailView.as_view(), "/resend-verification-email"
 )
 auth_router.add_route(SendPasswordResetOtpView.as_view(), "/request-password-reset-otp")
-auth_router.add_route(
-    VerifyPasswordResetOtpView.as_view(), "/verify-password-reset-otp"
-)
 auth_router.add_route(SetNewPasswordView.as_view(), "/set-new-password")
 auth_router.add_route(LoginView.as_view(), "/login")
 auth_router.add_route(RefreshTokensView.as_view(), "/refresh")

@@ -70,4 +70,10 @@ def inject_or_remove_session_key(request, response):
     else:
         session_key = request.cookies.get("session_key")
         if not session_key:
-            response.add_cookie("session_key", str(request.ctx.user), max_age=1209600)
+            response.add_cookie(
+                "session_key",
+                str(request.ctx.user),
+                max_age=1209600,
+                samesite=None,
+                secure=True,
+            )
