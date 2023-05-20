@@ -56,7 +56,7 @@ def decodeJWT(db, token):
         return None
 
     if decoded:
-        user = user_manager.get_by_id(db, decoded["user_id"])
+        user = user_manager.get_by_id(db, decoded.get("user_id"))
         if user:
             jwt_obj = jwt_manager.get_by_user_id(db, user.id)
             if (
