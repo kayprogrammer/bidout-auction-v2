@@ -7,6 +7,8 @@ from app.api.schemas.listings import (
     ListingDataSchema,
     ListingsResponseSchema,
     ListingResponseSchema,
+    CategoryDataSchema,
+    CategoriesResponseSchema,
     CreateBidSchema,
     BidDataSchema,
     BidsResponseSchema,
@@ -141,6 +143,19 @@ class ListingsByWatchListView(HTTPMethodView):
         return CustomResponse.success(message="Listing removed from user watchlist")
 
 
+class CategoryListView(HTTPMethodView):
+    @openapi.definition(
+        summary="Retrieve all categories",
+        description="This endpoint retrieves all categories",
+        response={"application/json": CategoriesResponseSchema},
+    )
+    async def get(self, request, **kwargs):
+        db = request.ctx.db
+        categories = category_manager.get_all(db)
+        data = [CategoryDataSchema.from_orm(category).dict() for category in categories]
+        return CustomResponse.success(message="Categories fetched", data=data)
+
+
 class ListingsByCategoryView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by category",
@@ -229,5 +244,6 @@ class BidsView(HTTPMethodView):
 listings_router.add_route(ListingsView.as_view(), "/")
 listings_router.add_route(ListingDetailView.as_view(), "/<slug>")
 listings_router.add_route(ListingsByWatchListView.as_view(), "/watchlist")
-listings_router.add_route(ListingsByCategoryView.as_view(), "/category/<slug>")
+listings_router.add_route(CategoryListView.as_view(), "/categories")
+listings_router.add_route(ListingsByCategoryView.as_view(), "/categories/<slug>")
 listings_router.add_route(BidsView.as_view(), "/<slug>/bids")

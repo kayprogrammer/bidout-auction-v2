@@ -103,6 +103,21 @@ class ListingsResponseSchema(ResponseSchema):
 
 # ------------------------------------------------------ #
 
+# CATEGORIES
+class CategoryDataSchema(BaseModel):
+    name: str
+    slug: str
+
+    class Config:
+        orm_mode = True
+
+
+class CategoriesResponseSchema(ResponseSchema):
+    data: List[CategoryDataSchema]
+
+
+# ------------------------------------------------------ #
+
 
 # BIDS #
 class CreateBidSchema(BaseModel):

@@ -27,9 +27,11 @@ mmig: # run with "make mmig" or "make mmig message='migration message'"
 		alembic revision --autogenerate -m "$(message)"; \
 	fi
 	
-
 mig:
 	alembic upgrade heads && python initials/initial_data.py
+
+initial_data:
+	python initials/initial_data.py
 
 tests:
 	pytest --verbose --disable-warnings -vv -x --timeout=10

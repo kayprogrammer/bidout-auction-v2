@@ -1,5 +1,5 @@
 from app.db.managers.accounts import jwt_manager
-from app.db.managers.listings import watchlist_manager, bid_manager
+from app.db.managers.listings import category_manager, watchlist_manager, bid_manager
 from app.api.utils.tokens import create_access_token, create_refresh_token
 import pytest
 import mock
@@ -146,16 +146,32 @@ async def test_remove_listing_from_user_watchlist(
 
 
 @pytest.mark.asyncio
+async def test_retrieve_all_categories(client, database):
+    # Create Category
+    category_manager.create(database, {"name": "TestCategory"})
+
+    # Verify that all categories are retrieved successfully
+    _, response = await client.get(f"{BASE_URL_PATH}/categories")
+    assert response.status_code == 200
+    json_resp = response.json
+    assert json_resp["status"] == "success"
+    assert json_resp["message"] == "Categories fetched"
+    data = json_resp["data"]
+    assert len(data) > 0
+    assert any(isinstance(obj["name"], str) for obj in data)
+
+
+@pytest.mark.asyncio
 async def test_retrieve_all_listings_by_category(client, create_listing):
     slug = create_listing["category"].slug
 
     # Verify that listings by an invalid category slug fails
-    _, response = await client.get(f"{BASE_URL_PATH}/category/invalid_category_slug")
+    _, response = await client.get(f"{BASE_URL_PATH}/categories/invalid_category_slug")
     assert response.status_code == 404
     assert response.json == {"status": "failure", "message": "Invalid category"}
 
     # Verify that all listings by a valid category slug are retrieved successfully
-    _, response = await client.get(f"{BASE_URL_PATH}/category/{slug}")
+    _, response = await client.get(f"{BASE_URL_PATH}/categories/{slug}")
     assert response.status_code == 200
     json_resp = response.json
     assert json_resp["status"] == "success"

@@ -1,6 +1,7 @@
 from app.core.config import settings
 from app.db.managers.accounts import user_manager
 from app.db.managers.general import sitedetail_manager, review_manager
+from app.db.managers.listings import category_manager
 
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,7 @@ class CreateData(object):
         reviewer = self.create_reviewer(db)
         self.create_sitedetail(db)
         self.create_reviews(db, reviewer.id)
+        self.create_categories(db)
 
     def create_superuser(self, db) -> None:
         superuser = user_manager.get_by_email(db, settings.FIRST_SUPERUSER_EMAIL)
@@ -83,4 +85,18 @@ class CreateData(object):
                 "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.",
                 "show": True,
             },
+        ]
+
+    def create_categories(self, db) -> None:
+        categories = category_manager.get_all(db)
+        if len(categories) < 1:
+            category_manager.bulk_create(db, self.category_mappings())
+        pass
+
+    def category_mappings(self):
+        return [
+            {"name": "Tecnology", "slug": "technology"},
+            {"name": "Accessories", "slug": "accessories"},
+            {"name": "Automobile", "slug": "automobile"},
+            {"name": "Fashion", "slug": "fashion"},
         ]

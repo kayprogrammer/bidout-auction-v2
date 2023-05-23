@@ -70,6 +70,10 @@ class BaseManager(Generic[ModelType]):
         db.delete(obj)
         db.commit()
 
+    def delete_all(self, db: Session):
+        db.query(self.model).delete()
+        db.commit()
+
 
 class FileManager(BaseManager[File]):
     pass
