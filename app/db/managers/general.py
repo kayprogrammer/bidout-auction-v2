@@ -15,8 +15,8 @@ class SiteDetailManager(BaseManager[SiteDetail]):
 
 class SubscriberManager(BaseManager[Subscriber]):
     def get_by_email(self, db: Session, email: str) -> Optional[Subscriber]:
-        suscriber = db.query(self.model).filter_by(email=email).first()
-        return suscriber
+        subscriber = db.query(self.model).filter_by(email=email).first()
+        return subscriber
 
 
 class ReviewManager(BaseManager[Review]):

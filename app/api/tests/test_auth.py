@@ -16,6 +16,7 @@ async def test_register_user(client):
         "last_name": "User",
         "email": email,
         "password": password,
+        "terms_agreement": True
     }
 
     # Verify that a new user can be registered successfully
@@ -25,6 +26,7 @@ async def test_register_user(client):
         assert response.json == {
             "status": "success",
             "message": "Registration successful",
+            "data": {"email": user_in['email']}
         }
 
     # Verify that a user with the same email cannot be registered again
@@ -230,15 +232,15 @@ async def test_get_password_otp(client, verified_user):
             "message": "Incorrect Email",
         }
 
-
 @pytest.mark.asyncio
-async def test_verify_password_token(client, database, verified_user):
+async def test_reset_password(client, verified_user, database):
+    password_reset_data = {"email": verified_user.email, "password": "newtestverifieduserpassword123"}
     otp = "111111"
 
     # Verify that the password reset verification fails with an invalid email
     _, response = await client.post(
-        f"{BASE_URL_PATH}/verify-password-reset-otp",
-        json={"email": "invalidemail@example.com", "otp": otp},
+        f"{BASE_URL_PATH}/set-new-password",
+        json={"email": "invalidemail@example.com", "otp": otp, "password": "newpassword"},
     )
     assert response.status_code == 404
     assert response.json == {
@@ -247,9 +249,10 @@ async def test_verify_password_token(client, database, verified_user):
     }
 
     # Verify that the password reset verification fails with an invalid otp
+    password_reset_data['otp'] = otp
     _, response = await client.post(
-        f"{BASE_URL_PATH}/verify-password-reset-otp",
-        json={"email": verified_user.email, "otp": otp},
+        f"{BASE_URL_PATH}/set-new-password",
+        json=password_reset_data,
     )
     assert response.status_code == 400
     assert response.json == {
@@ -257,44 +260,15 @@ async def test_verify_password_token(client, database, verified_user):
         "message": "Incorrect Otp",
     }
 
-    # Verify that the password reset verification succeeds with a valid otp
-    otp = otp_manager.create(database, {"user_id": verified_user.id}).code
-    _, response = await client.post(
-        f"{BASE_URL_PATH}/verify-password-reset-otp",
-        json={"email": verified_user.email, "otp": otp},
-    )
-    assert response.status_code == 200
-    assert response.json == {
-        "status": "success",
-        "message": "Otp verified successfully",
-    }
-
-
-@pytest.mark.asyncio
-async def test_reset_password(client, verified_user):
-    password_reset_data = {"password": "newtestverifieduserpassword123"}
-
-    # Verify that password reset fails if otp not yet verified
-    with mock.patch(
-        "app.api.utils.emails.send_email"
-    ) as password_reset_success_email_mock:
-        _, response = await client.post(
-            f"{BASE_URL_PATH}/set-new-password", json=password_reset_data
-        )
-        assert response.status_code == 400
-        assert response.json == {
-            "status": "failure",
-            "message": "Reset otp is not verified yet!",
-        }
-
     # Verify that password reset succeeds
+    otp = otp_manager.create(database, {"user_id": verified_user.id}).code
+    password_reset_data['otp'] = otp
     with mock.patch(
         "app.api.utils.emails.send_email"
     ) as password_reset_success_email_mock:
         _, response = await client.post(
             f"{BASE_URL_PATH}/set-new-password",
             json=password_reset_data,
-            cookies={"email": verified_user.email},
         )
         assert response.status_code == 200
         assert response.json == {

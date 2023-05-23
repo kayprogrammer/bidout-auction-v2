@@ -31,7 +31,7 @@ class SiteDetailResponseSchema(ResponseSchema):
 # -----------------------------
 
 
-# Suscribers
+# Subscribers
 class SubscriberSchema(BaseModel):
     email: EmailStr = Field(..., example="johndoe@example.com")
 

@@ -37,21 +37,21 @@ class SiteDetailView(HTTPMethodView):
 class SubscriberCreateView(HTTPMethodView):
     @openapi.definition(
         body=RequestBody({"application/json": SubscriberSchema}, required=True),
-        summary="Add a suscriber",
-        description="This endpoint creates a suscriber in our application",
+        summary="Add a subscriber",
+        description="This endpoint creates a subscriber in our application",
         response={"application/json": SubscriberResponseSchema},
     )
     @validate_request(SubscriberSchema)
     async def post(self, request, **kwargs):
         db = request.ctx.db
         email = request.json["email"]
-        suscriber = subscriber_manager.get_by_email(db, email)
-        if not suscriber:
-            suscriber = subscriber_manager.create(db, {"email": email})
+        subscriber = subscriber_manager.get_by_email(db, email)
+        if not subscriber:
+            subscriber = subscriber_manager.create(db, {"email": email})
 
-        data = SubscriberSchema.from_orm(suscriber).dict()
+        data = SubscriberSchema.from_orm(subscriber).dict()
         return CustomResponse.success(
-            message="Suscriber added successfully", data=data, status_code=201
+            message="Subscription successful", data=data, status_code=201
         )
 
 

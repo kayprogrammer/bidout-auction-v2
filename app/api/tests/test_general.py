@@ -18,16 +18,16 @@ async def test_retrieve_sitedetail(client):
 
 
 @pytest.mark.asyncio
-async def test_suscribe(client):
-    suscriber_dict = {"email": "test_suscriber@example.com"}
+async def test_subscribe(client):
+    subscriber_dict = {"email": "test_subscriber@example.com"}
 
     # Check response validity
-    _, response = await client.post(f"{BASE_URL_PATH}/suscribe", json=suscriber_dict)
+    _, response = await client.post(f"{BASE_URL_PATH}/subscribe", json=subscriber_dict)
     assert response.status_code == 201
     assert response.json == {
         "status": "success",
-        "message": "Suscriber added successfully",
-        "data": {"email": "test_suscriber@example.com"},
+        "message": "Subscription successful",
+        "data": {"email": "test_subscriber@example.com"},
     }
 
 
