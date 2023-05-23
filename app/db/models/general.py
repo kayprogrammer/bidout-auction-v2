@@ -28,8 +28,8 @@ class SiteDetail(BaseModel):
         return self.name
 
 
-class Suscriber(BaseModel):
-    __tablename__ = "suscribers"
+class Subscriber(BaseModel):
+    __tablename__ = "subscribers"
 
     email = Column(String, unique=True)
     exported = Column(Boolean, default=False)

@@ -5,15 +5,15 @@ from sanic_ext.extensions.openapi.definitions import RequestBody
 from app.api.schemas.general import (
     SiteDetailDataSchema,
     SiteDetailResponseSchema,
-    SuscriberSchema,
-    SuscriberResponseSchema,
+    SubscriberSchema,
+    SubscriberResponseSchema,
     ReviewsDataSchema,
     ReviewsResponseSchema,
 )
 from app.common.responses import CustomResponse
 from app.db.managers.general import (
     sitedetail_manager,
-    suscriber_manager,
+    subscriber_manager,
     review_manager,
 )
 from app.api.utils.decorators import validate_request
@@ -34,22 +34,22 @@ class SiteDetailView(HTTPMethodView):
         return CustomResponse.success(message="Site Details fetched", data=data)
 
 
-class SuscriberCreateView(HTTPMethodView):
+class SubscriberCreateView(HTTPMethodView):
     @openapi.definition(
-        body=RequestBody({"application/json": SuscriberSchema}, required=True),
+        body=RequestBody({"application/json": SubscriberSchema}, required=True),
         summary="Add a suscriber",
         description="This endpoint creates a suscriber in our application",
-        response={"application/json": SuscriberResponseSchema},
+        response={"application/json": SubscriberResponseSchema},
     )
-    @validate_request(SuscriberSchema)
+    @validate_request(SubscriberSchema)
     async def post(self, request, **kwargs):
         db = request.ctx.db
         email = request.json["email"]
-        suscriber = suscriber_manager.get_by_email(db, email)
+        suscriber = subscriber_manager.get_by_email(db, email)
         if not suscriber:
-            suscriber = suscriber_manager.create(db, {"email": email})
+            suscriber = subscriber_manager.create(db, {"email": email})
 
-        data = SuscriberSchema.from_orm(suscriber).dict()
+        data = SubscriberSchema.from_orm(suscriber).dict()
         return CustomResponse.success(
             message="Suscriber added successfully", data=data, status_code=201
         )
@@ -69,5 +69,5 @@ class ReviewsView(HTTPMethodView):
 
 
 general_router.add_route(SiteDetailView.as_view(), "/site-detail")
-general_router.add_route(SuscriberCreateView.as_view(), "/suscribe")
+general_router.add_route(SubscriberCreateView.as_view(), "/subscribe")
 general_router.add_route(ReviewsView.as_view(), "/reviews")

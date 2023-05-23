@@ -2,7 +2,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.db.managers.base import BaseManager
-from app.db.models.general import SiteDetail, Suscriber, Review
+from app.db.models.general import SiteDetail, Subscriber, Review
 
 
 class SiteDetailManager(BaseManager[SiteDetail]):
@@ -13,8 +13,8 @@ class SiteDetailManager(BaseManager[SiteDetail]):
         return sitedetail
 
 
-class SuscriberManager(BaseManager[Suscriber]):
-    def get_by_email(self, db: Session, email: str) -> Optional[Suscriber]:
+class SubscriberManager(BaseManager[Subscriber]):
+    def get_by_email(self, db: Session, email: str) -> Optional[Subscriber]:
         suscriber = db.query(self.model).filter_by(email=email).first()
         return suscriber
 
@@ -30,5 +30,5 @@ class ReviewManager(BaseManager[Review]):
 
 
 sitedetail_manager = SiteDetailManager(SiteDetail)
-suscriber_manager = SuscriberManager(Suscriber)
+subscriber_manager = SubscriberManager(Subscriber)
 review_manager = ReviewManager(Review)

@@ -32,15 +32,15 @@ class SiteDetailResponseSchema(ResponseSchema):
 
 
 # Suscribers
-class SuscriberSchema(BaseModel):
+class SubscriberSchema(BaseModel):
     email: EmailStr = Field(..., example="johndoe@example.com")
 
     class Config:
         orm_mode = True
 
 
-class SuscriberResponseSchema(ResponseSchema):
-    data: SuscriberSchema
+class SubscriberResponseSchema(ResponseSchema):
+    data: SubscriberSchema
 
 
 # ----------------------
