@@ -152,11 +152,11 @@ class WatchListManager(BaseManager[WatchList]):
 
 class BidManager(BaseManager[Bid]):
     def get_by_user_id(self, db: Session, user_id: UUID) -> Optional[List[Bid]]:
-        bids = db.query(self.model).filter_by(user_id=user_id).order_by(self.model.created_at.desc()).all()
+        bids = db.query(self.model).filter_by(user_id=user_id).order_by(self.model.updated_at.desc()).all()
         return bids
 
     def get_by_listing_id(self, db: Session, listing_id: UUID) -> Optional[List[Bid]]:
-        bids = db.query(self.model).filter_by(listing_id=listing_id).order_by(self.model.created_at.desc()).all()
+        bids = db.query(self.model).filter_by(listing_id=listing_id).order_by(self.model.updated_at.desc()).all()
         return bids
 
     def get_by_user_and_listing_id(
