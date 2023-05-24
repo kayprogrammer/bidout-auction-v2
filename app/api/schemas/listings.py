@@ -43,6 +43,10 @@ class ListingDataSchema(BaseModel):
     image_id: UUID = Field(..., example="Ignore this")
     image: Optional[Any]
 
+    @validator("closing_date", always=True)
+    def assemble_closing_date(cls, v):
+        return v.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    
     @validator("auctioneer", always=True)
     def show_auctioneer(cls, v, values):
         db = SessionLocal()
@@ -133,6 +137,10 @@ class BidDataSchema(BaseModel):
     amount: Decimal = Field(..., example=1000.00, decimal_places=2)
     created_at: datetime
     updated_at: datetime
+
+    @validator("created_at", "updated_at", always=True)
+    def assemble_date(cls, v):
+        return v.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     @validator("user", always=True)
     def show_user(cls, v, values):
