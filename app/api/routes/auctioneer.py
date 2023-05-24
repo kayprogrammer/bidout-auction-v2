@@ -70,7 +70,7 @@ class AuctioneerListingsView(HTTPMethodView):
         user = request.ctx.user
         category = data.get("category")
 
-        if not category == 'other':
+        if not category == "other":
             category = category_manager.get_by_slug(db, category)
             if not category:
                 # Return a data validation error

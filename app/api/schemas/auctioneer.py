@@ -59,7 +59,7 @@ class CreateListingResponseDataSchema(BaseModel):
     slug: str
     desc: str
 
-    category_id: UUID = Field(..., example="Ignore this")
+    category_id: Optional[UUID] = Field(..., example="Ignore this")
     category: Optional[str]
 
     price: int

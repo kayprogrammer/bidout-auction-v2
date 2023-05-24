@@ -33,7 +33,7 @@ class ListingDataSchema(BaseModel):
     slug: Optional[str]
     desc: str
 
-    category_id: UUID = Field(..., example="Ignore this")
+    category_id: Optional[UUID] = Field(..., example="Ignore this")
     category: Optional[str]
 
     price: Decimal = Field(..., example=1000.00, decimal_places=2)
@@ -46,7 +46,7 @@ class ListingDataSchema(BaseModel):
     @validator("closing_date", always=True)
     def assemble_closing_date(cls, v):
         return v.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    
+
     @validator("auctioneer", always=True)
     def show_auctioneer(cls, v, values):
         db = SessionLocal()
