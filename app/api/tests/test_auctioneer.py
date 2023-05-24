@@ -39,7 +39,7 @@ async def test_profile_update(authorized_client):
         "data": {
             "first_name": "VerifiedUser",
             "last_name": "Update",
-            "upload_url": mock.ANY,
+            "file_upload_data": mock.ANY,
         },
     }
 
@@ -91,7 +91,7 @@ async def test_auctioneer_create_listings(authorized_client, database):
             "closing_date": mock.ANY,
             "active": True,
             "bids_count": 0,
-            "upload_url": mock.ANY,
+            "file_upload_data": mock.ANY,
         },
     }
 
@@ -163,7 +163,7 @@ async def test_auctioneer_update_listing(authorized_client, create_listing):
             "closing_date": mock.ANY,
             "active": True,
             "bids_count": 0,
-            "upload_url": mock.ANY,
+            "file_upload_data": mock.ANY,
         },
     }
 

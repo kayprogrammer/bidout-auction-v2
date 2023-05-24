@@ -54,7 +54,7 @@ class ListingDataSchema(BaseModel):
             if auctioneer.avatar_id:
                 avatar = FileProcessor.generate_file_url(
                     key=auctioneer.avatar_id,
-                    folder="user",
+                    folder="avatars",
                     content_type=auctioneer.avatar.resource_type,
                 )
             db.close()
@@ -145,7 +145,7 @@ class BidDataSchema(BaseModel):
             if user.avatar_id:
                 avatar = FileProcessor.generate_file_url(
                     key=user.avatar_id,
-                    folder="user",
+                    folder="avatars",
                     content_type=user.avatar.resource_type,
                 )
             db.close()

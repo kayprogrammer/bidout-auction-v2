@@ -1,8 +1,8 @@
 from app.common.responses import CustomResponse
 from app.core.config import settings
-import mimetypes
 import time
 import cloudinary
+import mimetypes
 
 BASE_FOLDER = "bidout-auction-v2/"
 
@@ -16,22 +16,30 @@ cloudinary.config(
 
 class FileProcessor:
     @staticmethod
+    def generate_file_signature(key, folder):
+        key = f"{BASE_FOLDER}{folder}/{key}"
+        timestamp = str(int(time.time()))
+        params = {
+            "public_id": key,
+            "timestamp": timestamp,
+        }
+        try:
+            signature = cloudinary.utils.api_sign_request(
+                params_to_sign = params,
+                api_secret=settings.CLOUDINARY_API_SECRET
+            )
+            return {"public_id": key, "signature": signature, "timestamp": timestamp}
+        except Exception as e:
+            print(e)
+            return CustomResponse.error("Couldn't generate signature")
+        
     def generate_file_url(key, folder, content_type):
         file_extension = mimetypes.guess_extension(content_type)
         key = f"{BASE_FOLDER}{folder}/{key}{file_extension}"
-        params = {
-            "public_id": key,
-            "timestamp": str(int(time.time())),
-        }
+        
         try:
-            signed_url, options = cloudinary.utils.cloudinary_url(
-                key,
-                transformation={"width": 500, "height": 500, "crop": "fill"},
-                resource_type="image",
-                type="authenticated",
-                **params,
-            )
-            return signed_url
+            return cloudinary.utils.cloudinary_url(key, secure=True)
         except Exception as e:
             print(e)
             return CustomResponse.error("Couldn't generate file url!")
+

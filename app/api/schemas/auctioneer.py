@@ -67,20 +67,19 @@ class CreateListingResponseDataSchema(BaseModel):
     active: bool
     bids_count: int
     image_id: UUID = Field(..., example="Ignore this")
-    upload_url: Optional[str]
+    file_upload_data: Optional[dict]
 
-    @validator("upload_url", always=True)
-    def assemble_upload_url(cls, v, values):
+    @validator("file_upload_data", always=True)
+    def assemble_file_upload_data(cls, v, values):
         db = SessionLocal()
         image_id = values.get("image_id")
         file = file_manager.get_by_id(db, image_id)
         if file:
             db.close()
             values.pop("image_id", None)
-            return FileProcessor.generate_file_url(
+            return FileProcessor.generate_file_signature(
                 key=image_id,
                 folder="listings",
-                content_type=file.resource_type,
             )
         db.close()
         values.pop("image_id", None)
@@ -97,7 +96,7 @@ class CreateListingResponseDataSchema(BaseModel):
             if auctioneer.avatar_id:
                 avatar = FileProcessor.generate_file_url(
                     key=auctioneer.avatar_id,
-                    folder="user",
+                    folder="avatars",
                     content_type=auctioneer.avatar.resource_type,
                 )
             db.close()
@@ -155,20 +154,19 @@ class UpdateProfileResponseDataSchema(BaseModel):
     first_name: str
     last_name: str
     avatar_id: UUID = Field(..., example="Ignore this")
-    upload_url: Optional[str]
+    file_upload_data: Optional[dict]
 
-    @validator("upload_url", always=True)
-    def assemble_upload_url(cls, v, values):
+    @validator("file_upload_data", always=True)
+    def assemble_file_upload_data(cls, v, values):
         db = SessionLocal()
         avatar_id = values.get("avatar_id")
         file = file_manager.get_by_id(db, avatar_id)
         if file:
             db.close()
             values.pop("avatar_id", None)
-            return FileProcessor.generate_file_url(
+            return FileProcessor.generate_file_signature(
                 key=avatar_id,
-                folder="avatar",
-                content_type=file.resource_type,
+                folder="avatars",
             )
         db.close()
         values.pop("avatar_id", None)
@@ -200,7 +198,7 @@ class ProfileDataSchema(BaseModel):
             db.close()
             values.pop("avatar_id", None)
             return FileProcessor.generate_file_url(
-                key=avatar_id, folder="avatar", content_type=file.resource_type
+                key=avatar_id, folder="avatars", content_type=file.resource_type
             )
         db.close()
         values.pop("avatar_id", None)
