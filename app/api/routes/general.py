@@ -44,7 +44,7 @@ class SubscriberCreateView(HTTPMethodView):
     @validate_request(SubscriberSchema)
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        email = request.json["email"]
+        email = kwargs.get("data")["email"]
         subscriber = subscriber_manager.get_by_email(db, email)
         if not subscriber:
             subscriber = subscriber_manager.create(db, {"email": email})

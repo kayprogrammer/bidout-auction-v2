@@ -37,7 +37,7 @@ class CategoryManager(BaseManager[Category]):
 class ListingManager(BaseManager[Listing]):
     def get_all(self, db: Session) -> Optional[List[Listing]]:
         return db.query(self.model).order_by(self.model.created_at.desc()).all()
-    
+
     def get_by_auctioneer_id(
         self, db: Session, auctioneer_id: UUID
     ) -> Optional[Listing]:
@@ -75,8 +75,7 @@ class ListingManager(BaseManager[Listing]):
 
     def update(self, db: Session, db_obj: Listing, obj_in) -> Optional[Listing]:
         name = obj_in.get("name")
-        if name:
-
+        if name and name != db_obj.name:
             # Generate unique slug
             created_slug = slugify(name)
             updated_slug = obj_in.get("slug")
@@ -93,7 +92,12 @@ class ListingManager(BaseManager[Listing]):
 
 class WatchListManager(BaseManager[WatchList]):
     def get_by_user_id(self, db: Session, user_id: UUID) -> Optional[List[WatchList]]:
-        watchlist = db.query(self.model.listing_id).filter_by(user_id=user_id).order_by(self.model.created_at.desc()).all()
+        watchlist = (
+            db.query(self.model.listing_id)
+            .filter_by(user_id=user_id)
+            .order_by(self.model.created_at.desc())
+            .all()
+        )
         return watchlist
 
     def get_by_session_key(
@@ -152,11 +156,21 @@ class WatchListManager(BaseManager[WatchList]):
 
 class BidManager(BaseManager[Bid]):
     def get_by_user_id(self, db: Session, user_id: UUID) -> Optional[List[Bid]]:
-        bids = db.query(self.model).filter_by(user_id=user_id).order_by(self.model.updated_at.desc()).all()
+        bids = (
+            db.query(self.model)
+            .filter_by(user_id=user_id)
+            .order_by(self.model.updated_at.desc())
+            .all()
+        )
         return bids
 
     def get_by_listing_id(self, db: Session, listing_id: UUID) -> Optional[List[Bid]]:
-        bids = db.query(self.model).filter_by(listing_id=listing_id).order_by(self.model.updated_at.desc()).all()
+        bids = (
+            db.query(self.model)
+            .filter_by(listing_id=listing_id)
+            .order_by(self.model.updated_at.desc())
+            .all()
+        )
         return bids
 
     def get_by_user_and_listing_id(

@@ -90,7 +90,7 @@ class ListingsByWatchListView(HTTPMethodView):
     )
     @validate_request(CreateWatchlistSchema)
     async def post(self, request, **kwargs):
-        data = request.json
+        data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
 
@@ -118,7 +118,7 @@ class ListingsByWatchListView(HTTPMethodView):
     )
     @validate_request(CreateWatchlistSchema)
     async def delete(self, request, **kwargs):
-        data = request.json
+        data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
         slug = data.get("slug")
@@ -204,7 +204,7 @@ class BidsView(HTTPMethodView):
     @validate_request(CreateBidSchema)
     async def post(self, request, **kwargs):
         slug = kwargs.get("slug")
-        data = request.json
+        data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
 
@@ -228,11 +228,11 @@ class BidsView(HTTPMethodView):
                 "Bid amount cannot be less than the bidding price!"
             )
         elif amount <= listing.get_highest_bid():
-
             return CustomResponse.error("Bid amount must be more than the highest bid!")
 
         bid = bid_manager.create(
-            db, {"user_id": user.id, "listing_id": listing.id, "amount": amount}
+            db,
+            {"user_id": user.id, "listing_id": listing.id, "amount": amount},
         )
 
         data = BidDataSchema.from_orm(bid).dict()

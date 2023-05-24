@@ -34,10 +34,9 @@ def validate_request(schema):
                 raise SanicException(
                     message="Invalid request. Missing body", status_code=400
                 )
-            data = schema(**request.json)
+            data = schema(**json_data)
             data_dict = data.dict()
-            request.json.update(data_dict)
-            kwargs.update(data_dict)
+            kwargs.update({"data": data_dict})
             return await f(request, *args, **kwargs)
 
         return decorated_function

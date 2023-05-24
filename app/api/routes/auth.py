@@ -39,7 +39,7 @@ class RegisterView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
 
         # Check for existing user
         existing_user = user_manager.get_by_email(db, data["email"])
@@ -74,7 +74,7 @@ class VerifyEmailView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
         user_by_email = user_manager.get_by_email(db, data["email"])
 
         if not user_by_email:
@@ -107,7 +107,7 @@ class ResendVerificationEmailView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
         user_by_email = user_manager.get_by_email(db, data["email"])
         if not user_by_email:
             return CustomResponse.error("Incorrect Email", status_code=404)
@@ -131,7 +131,7 @@ class SendPasswordResetOtpView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
         user_by_email = user_manager.get_by_email(db, data["email"])
         if not user_by_email:
             return CustomResponse.error("Incorrect Email", status_code=404)
@@ -153,7 +153,7 @@ class SetNewPasswordView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
         email = data["email"]
         otp_code = data["otp"]
         password = data["password"]
@@ -187,7 +187,7 @@ class LoginView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
         email = data["email"]
         plain_password = data["password"]
         user = user_manager.get_by_email(db, email)
@@ -238,7 +238,7 @@ class RefreshTokensView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = request.json
+        data = kwargs.get("data")
         token = data["refresh"]
         jwt = jwt_manager.get_by_refresh(db, token)
         if not jwt:

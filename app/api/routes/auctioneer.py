@@ -65,7 +65,7 @@ class AuctioneerListingsView(HTTPMethodView):
     )
     @validate_request(CreateListingSchema)
     async def post(self, request, **kwargs):
-        data = request.json
+        data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
         category = data.get("category")
@@ -83,7 +83,10 @@ class AuctioneerListingsView(HTTPMethodView):
             category = None
 
         data.update(
-            {"auctioneer_id": user.id, "category_id": category.id if category else None}
+            {
+                "auctioneer_id": user.id,
+                "category_id": category.id if category else None,
+            }
         )
         data.pop("category", None)
 
@@ -110,7 +113,7 @@ class UpdateListingView(HTTPMethodView):
     )
     @validate_request(CreateListingSchema)
     async def put(self, request, **kwargs):
-        data = request.json
+        data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
         slug = kwargs.get("slug")
@@ -183,7 +186,7 @@ class ProfileView(HTTPMethodView):
         response={"application/json": ProfileResponseSchema},
     )
     async def get(self, request, **kwargs):
-        data = request.json
+        data = kwargs.get("data")
         user = request.ctx.user
 
         data = ProfileDataSchema.from_orm(user).dict()
@@ -197,7 +200,7 @@ class ProfileView(HTTPMethodView):
     )
     @validate_request(UpdateProfileSchema)
     async def put(self, request, **kwargs):
-        data = request.json
+        data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
 
