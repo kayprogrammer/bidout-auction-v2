@@ -38,7 +38,7 @@ class FileProcessor:
         key = f"{BASE_FOLDER}{folder}/{key}{file_extension}"
         
         try:
-            return cloudinary.utils.cloudinary_url(key, secure=True)
+            return cloudinary.utils.cloudinary_url(key, secure=True)[0]
         except Exception as e:
             print(e)
             return CustomResponse.error("Couldn't generate file url!")
