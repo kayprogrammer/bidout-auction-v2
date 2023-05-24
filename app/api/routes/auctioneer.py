@@ -70,7 +70,7 @@ class AuctioneerListingsView(HTTPMethodView):
         user = request.ctx.user
         category = data.get("category")
 
-        if category:
+        if not category == 'other':
             category = category_manager.get_by_slug(db, category)
             if not category:
                 # Return a data validation error
@@ -79,6 +79,8 @@ class AuctioneerListingsView(HTTPMethodView):
                     data={"category": "Invalid category"},
                     status_code=422,
                 )
+        else:
+            category = None
 
         data.update(
             {"auctioneer_id": user.id, "category_id": category.id if category else None}
