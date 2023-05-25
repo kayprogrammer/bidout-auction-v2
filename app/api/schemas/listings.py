@@ -18,7 +18,7 @@ from decimal import Decimal
 # LISTINGS
 
 
-class CreateWatchlistSchema(BaseModel):
+class AddOrRemoveWatchlistSchema(BaseModel):
     slug: str = Field(..., example="listing_slug")
 
 
@@ -42,6 +42,7 @@ class ListingDataSchema(BaseModel):
     bids_count: int
     image_id: UUID = Field(..., example="Ignore this")
     image: Optional[Any]
+    watchlist: Optional[bool]
 
     @validator("closing_date", always=True)
     def assemble_closing_date(cls, v):

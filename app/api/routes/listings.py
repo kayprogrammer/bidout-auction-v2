@@ -3,7 +3,7 @@ from sanic.views import HTTPMethodView
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody
 from app.api.schemas.listings import (
-    CreateWatchlistSchema,
+    AddOrRemoveWatchlistSchema,
     ListingDataSchema,
     ListingsResponseSchema,
     ListingResponseSchema,
@@ -37,13 +37,27 @@ class ListingsView(HTTPMethodView):
     )
     async def get(self, request, **kwargs):
         db = request.ctx.db
+        user = request.ctx.user
+        if hasattr(user, "email"):
+            user = user.id
+
         quantity = validate_quantity(request.args.get("quantity"))
         listings = listing_manager.get_all(db)
         if quantity:
             # Retrieve based on amount
             listings = listings[:quantity]
 
-        data = [ListingDataSchema.from_orm(listing).dict() for listing in listings]
+        data = [
+            ListingDataSchema(
+                watchlist=True
+                if watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
+                    db, str(user), listing.id
+                )
+                else False,
+                **listing.__dict__
+            ).dict()
+            for listing in listings
+        ]
         return CustomResponse.success(message="Listings fetched", data=data)
 
 
@@ -77,47 +91,21 @@ class ListingsByWatchListView(HTTPMethodView):
 
         watchlists = watchlist_manager.get_by_user_id_or_session_key(db, user)
         data = [
-            ListingDataSchema.from_orm(watchlist.listing).dict()
+            ListingDataSchema(watchlist=True, **watchlist.listing.__dict__).dict()
             for watchlist in watchlists
         ]
         return CustomResponse.success(message="Watchlists Listings fetched", data=data)
 
     @openapi.definition(
-        body=RequestBody({"application/json": CreateWatchlistSchema}, required=True),
-        summary="Add a listing to a users watchlist",
-        description="This endpoint adds a listing to a user's watchlist, authenticated or not.",
-        response={"application/json": ListingsResponseSchema},
-    )
-    @validate_request(CreateWatchlistSchema)
-    async def post(self, request, **kwargs):
-        data = kwargs.get("data")
-        db = request.ctx.db
-        user = request.ctx.user
-
-        listing = listing_manager.get_by_slug(db, data.get("slug"))
-        if not listing:
-            return CustomResponse.error("Listing does not exist!", status_code=404)
-
-        data_entry = {"session_key": str(user), "listing_id": listing.id}
-        if hasattr(user, "email"):
-            # Here we know its a user object and not a session key string, now we can retrieve id.
-            data_entry["user_id"] = user.id
-            del data_entry["session_key"]
-
-        watchlist = watchlist_manager.create(db, data_entry)
-        data = ListingDataSchema.from_orm(watchlist.listing).dict()
-        return CustomResponse.success(
-            message="Listing added to Watchlists", data=data, status_code=201
-        )
-
-    @openapi.definition(
-        body=RequestBody({"application/json": CreateWatchlistSchema}, required=True),
-        summary="Remove listing from a users watchlist",
-        description="This endpoint removes a listing from a user's watchlist, authenticated or not.",
+        body=RequestBody(
+            {"application/json": AddOrRemoveWatchlistSchema}, required=True
+        ),
+        summary="Add or Remove listing from a users watchlist",
+        description="This endpoint adds or removes a listing from a user's watchlist, authenticated or not.",
         response={"application/json": ResponseSchema},
     )
-    @validate_request(CreateWatchlistSchema)
-    async def delete(self, request, **kwargs):
+    @validate_request(AddOrRemoveWatchlistSchema)
+    async def post(self, request, **kwargs):
         data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
@@ -127,20 +115,27 @@ class ListingsByWatchListView(HTTPMethodView):
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
 
+        data_entry = {"session_key": str(user), "listing_id": listing.id}
         if hasattr(user, "email"):
             # Here we know its a user object and not a session key string, now we can retrieve id.
             user = user.id
+            del data_entry["session_key"]
+            data_entry["user_id"] = user
 
         watchlist = watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
-            db, user, listing.id
+            db, str(user), listing.id
         )
-        if not watchlist:
-            return CustomResponse.error(
-                "User has no watchlist with such listing!", status_code=404
-            )
 
-        watchlist_manager.delete(db, watchlist)
-        return CustomResponse.success(message="Listing removed from user watchlist")
+        resp_message = "Listing removed from user watchlist"
+        status_code = 200
+        if not watchlist:
+            watchlist_manager.create(db, data_entry)
+            resp_message = "Listing added from user watchlist"
+            status_code = 201
+        else:
+            watchlist_manager.delete(db, watchlist)
+
+        return CustomResponse.success(message=resp_message, status_code=status_code)
 
 
 class CategoryListView(HTTPMethodView):
@@ -172,8 +167,22 @@ class ListingsByCategoryView(HTTPMethodView):
             if not category:
                 return CustomResponse.error("Invalid category", status_code=404)
 
+        user = request.ctx.user
+        if hasattr(user, "email"):
+            user = user.id
+
         listings = listing_manager.get_by_category(db, category)
-        data = [ListingDataSchema.from_orm(listing).dict() for listing in listings]
+        data = [
+            ListingDataSchema(
+                watchlist=True
+                if watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
+                    db, str(user), listing.id
+                )
+                else False,
+                **listing.__dict__
+            ).dict()
+            for listing in listings
+        ]
         return CustomResponse.success(message="Category Listings fetched", data=data)
 
 
