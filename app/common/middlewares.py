@@ -74,6 +74,6 @@ def inject_or_remove_session_key(request, response):
                 "session_key",
                 str(request.ctx.user),
                 max_age=1209600,
-                samesite=None,
-                secure=True,
+                httponly=True,
+                samesite="none",
             )
