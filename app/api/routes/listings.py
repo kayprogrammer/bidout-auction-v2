@@ -29,6 +29,8 @@ listings_router = Blueprint("Listings", url_prefix="/api/v2/listings")
 
 
 class ListingsView(HTTPMethodView):
+    decorators = [authorized()]
+
     @openapi.definition(
         summary="Retrieve all listings",
         description="This endpoint retrieves all listings",
@@ -78,6 +80,8 @@ class ListingDetailView(HTTPMethodView):
 
 
 class ListingsByWatchListView(HTTPMethodView):
+    decorators = [authorized()]
+
     @openapi.definition(
         summary="Retrieve all listings by users watchlist",
         description="This endpoint retrieves all listings",
@@ -152,6 +156,8 @@ class CategoryListView(HTTPMethodView):
 
 
 class ListingsByCategoryView(HTTPMethodView):
+    decorators = [authorized()]
+
     @openapi.definition(
         summary="Retrieve all listings by category",
         description="This endpoint retrieves all listings in a particular category. Use slug 'other' for category other",

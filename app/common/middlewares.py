@@ -43,7 +43,7 @@ class RequestUserObject(object):
 def inject_current_user(request):
     # Inject current user to the request context.
     db = request.ctx.db
-    token = request.headers.get("Authorization", None)
+    token = request.headers.get("Authorization", None)  # can also use request.token
     is_authorized = decodeJWT(db, token)
     if is_authorized:
         # Let the user context object contain the user model object
