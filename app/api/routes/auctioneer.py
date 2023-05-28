@@ -204,10 +204,12 @@ class ProfileView(HTTPMethodView):
         db = request.ctx.db
         user = request.ctx.user
 
-        # Create file object
-        file = file_manager.create(db, {"resource_type": data["file_type"]})
-        data.pop("file_type")
-        data.update({"avatar_id": file.id})
+        file_type = data.get("file_type")
+        if file_type:
+            # Create file object
+            file = file_manager.create(db, {"resource_type": file_type})
+            data.update({"avatar_id": file.id})
+        data.pop("file_type", None)
 
         user = user_manager.update(db, user.user, data)
         data = UpdateProfileResponseDataSchema.from_orm(user).dict()

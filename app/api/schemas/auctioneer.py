@@ -129,7 +129,7 @@ class CreateListingResponseSchema(ResponseSchema):
 class UpdateProfileSchema(BaseModel):
     first_name: str = Field(..., example="John", max_length=50)
     last_name: str = Field(..., example="Doe", max_length=50)
-    file_type: str = Field(..., example="image/png")
+    file_type: Optional[str] = Field(None, example="image/png")
 
     @validator("first_name", "last_name")
     def validate_name(cls, v):
@@ -139,7 +139,7 @@ class UpdateProfileSchema(BaseModel):
 
     @validator("file_type")
     def validate_file_type(cls, v):
-        if not v in ALLOWED_IMAGE_TYPES:
+        if v and v not in ALLOWED_IMAGE_TYPES:
             raise ValueError("Image type not allowed!")
         return v
 

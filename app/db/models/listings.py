@@ -51,7 +51,6 @@ class Listing(BaseModel):
     price = Column(Numeric(precision=10, scale=2))
     closing_date = Column(DateTime, nullable=True)
     active = Column(Boolean, default=True)
-    bids_count = Column(Integer, default=0)
 
     image_id = Column(
         UUID(as_uuid=True),
@@ -76,6 +75,10 @@ class Listing(BaseModel):
 
     def __repr__(self):
         return self.name
+
+    @property
+    def bids_count(self):
+        return self.listing_bids.count()
 
     def time_left(self):
         remaining_time = self.closing_date - datetime.utcnow()
