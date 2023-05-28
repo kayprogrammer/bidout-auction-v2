@@ -56,6 +56,7 @@ class ListingsView(HTTPMethodView):
                     db, str(user), listing.id
                 )
                 else False,
+                bids_count=listing.bids_count,
                 **listing.__dict__
             ).dict()
             for listing in listings
@@ -95,7 +96,11 @@ class ListingsByWatchListView(HTTPMethodView):
 
         watchlists = watchlist_manager.get_by_user_id_or_session_key(db, user)
         data = [
-            ListingDataSchema(watchlist=True, **watchlist.listing.__dict__).dict()
+            ListingDataSchema(
+                watchlist=True,
+                bids_count=watchlist.listing.bids_count,
+                **watchlist.listing.__dict__
+            ).dict()
             for watchlist in watchlists
         ]
         return CustomResponse.success(message="Watchlists Listings fetched", data=data)
@@ -185,6 +190,7 @@ class ListingsByCategoryView(HTTPMethodView):
                     db, str(user), listing.id
                 )
                 else False,
+                bids_count=listing.bids_count,
                 **listing.__dict__
             ).dict()
             for listing in listings
