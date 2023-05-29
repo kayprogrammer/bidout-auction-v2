@@ -60,6 +60,7 @@ class ListingsView(HTTPMethodView):
                 else False,
                 bids_count=listing.bids_count,
                 highest_bid=listing.highest_bid,
+                time_left_seconds=listing.time_left_seconds,
                 **listing.__dict__
             ).dict()
             for listing in listings
@@ -113,6 +114,7 @@ class ListingsByWatchListView(HTTPMethodView):
                 watchlist=True,
                 bids_count=watchlist.listing.bids_count,
                 highest_bid=watchlist.listing.highest_bid,
+                time_left_seconds=watchlist.listing.time_left_seconds,
                 **watchlist.listing.__dict__
             ).dict()
             for watchlist in watchlists
@@ -206,6 +208,7 @@ class ListingsByCategoryView(HTTPMethodView):
                 else False,
                 bids_count=listing.bids_count,
                 highest_bid=listing.highest_bid,
+                time_left_seconds=listing.time_left_seconds,
                 **listing.__dict__
             ).dict()
             for listing in listings
@@ -259,7 +262,7 @@ class BidsView(HTTPMethodView):
             )
         elif not listing.active:
             return CustomResponse.error("This auction is closed!", status_code=410)
-        elif listing.time_left_seconds() < 1:
+        elif listing.time_left_seconds < 1:
             return CustomResponse.error(
                 "This auction is expired and closed!", status_code=410
             )

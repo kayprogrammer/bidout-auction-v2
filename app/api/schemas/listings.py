@@ -14,6 +14,7 @@ from app.api.utils.file_processors import FileProcessor
 from app.core.database import SessionLocal
 
 from decimal import Decimal
+from pytz import UTC
 
 # LISTINGS
 
@@ -38,12 +39,21 @@ class ListingDataSchema(BaseModel):
 
     price: Decimal = Field(..., example=1000.00, decimal_places=2)
     closing_date: datetime
+    time_left_seconds: int
     active: bool
     bids_count: int
     highest_bid: int
     image_id: UUID = Field(..., example="Ignore this")
     image: Optional[Any]
     watchlist: Optional[bool]
+
+    @validator("active", always=True)
+    def set_active(cls, v, values):
+        time_left_seconds = values.get("time_left_seconds")
+        values.pop("time_left_seconds", None)
+        if time_left_seconds > 0:
+            return True
+        return False
 
     @validator("closing_date", always=True)
     def assemble_closing_date(cls, v):

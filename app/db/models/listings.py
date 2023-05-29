@@ -92,6 +92,7 @@ class Listing(BaseModel):
             minutes, seconds = divmod(seconds, 60)
             return f"-{days:02d}D :{hours:02d}H :{minutes:02d}M :{seconds:02d}S"
 
+    @property
     def time_left_seconds(self):
         if not self.active:
             return 0
