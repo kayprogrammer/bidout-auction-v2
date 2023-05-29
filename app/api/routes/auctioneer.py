@@ -128,7 +128,7 @@ class UpdateListingView(HTTPMethodView):
         if user.id != listing.auctioneer_id:
             return CustomResponse.error("This listing doesn't belong to you!")
 
-        if category:
+        if not category == "other":
             category = category_manager.get_by_slug(db, category)
             if not category:
                 # Return a data validation error
@@ -137,6 +137,8 @@ class UpdateListingView(HTTPMethodView):
                     data={"category": "Invalid category"},
                     status_code=422,
                 )
+        else:
+            category = None
 
         data.update({"category_id": category.id if category else None})
         data.pop("category", None)
