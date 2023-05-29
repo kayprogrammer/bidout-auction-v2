@@ -82,7 +82,7 @@ class ListingDetailView(HTTPMethodView):
 
         related_listings = listing_manager.get_related_listings(
             db, listing.category_id, slug
-        )
+        )[:3]
         data = ListingDetailDataSchema(
             listing=ListingDataSchema.from_orm(listing),
             related_listings=[
