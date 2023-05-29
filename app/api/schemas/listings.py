@@ -50,7 +50,6 @@ class ListingDataSchema(BaseModel):
     @validator("active", always=True)
     def set_active(cls, v, values):
         time_left_seconds = values.get("time_left_seconds")
-        values.pop("time_left_seconds", None)
         if time_left_seconds > 0:
             return True
         return False
