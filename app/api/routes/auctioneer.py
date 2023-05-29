@@ -140,11 +140,13 @@ class UpdateListingView(HTTPMethodView):
         data.update({"category_id": category.id if category else None})
         data.pop("category", None)
 
-        # Create file object
-        file_manager.delete(db, listing.image)
-        file = file_manager.create(db, {"resource_type": data["file_type"]})
-        data.update({"image_id": file.id})
-        data.pop("file_type")
+        file_type = data.get("file_type")
+        if file_type:
+            file_manager.delete(db, listing.image)
+            # Create file object
+            file = file_manager.create(db, {"resource_type": file_type})
+            data.update({"image_id": file.id})
+        data.pop("file_type", None)
 
         listing = listing_manager.update(db, listing, data)
         data = CreateListingResponseDataSchema.from_orm(listing).dict()

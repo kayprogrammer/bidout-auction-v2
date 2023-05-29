@@ -23,7 +23,7 @@ class CreateListingSchema(BaseModel):
     category: Optional[StrictStr] = Field(..., example="category_slug")
     price: Decimal = Field(..., example=1000.00, decimal_places=2)
     closing_date: datetime
-    file_type: str = Field(..., example="image/jpeg")
+    file_type: Optional[str] = Field(None, example="image/jpeg")
 
     @validator("closing_date")
     def validate_closing_date(cls, v):
