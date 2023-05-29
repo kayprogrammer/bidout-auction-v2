@@ -128,20 +128,24 @@ class UpdateListingView(HTTPMethodView):
         if user.id != listing.auctioneer_id:
             return CustomResponse.error("This listing doesn't belong to you!")
 
-        if not category == "other":
-            category = category_manager.get_by_slug(db, category)
-            if not category:
-                # Return a data validation error
-                return CustomResponse.error(
-                    message="Invalid entry",
-                    data={"category": "Invalid category"},
-                    status_code=422,
-                )
-        else:
-            category = None
+        # Remove keys with values of None
+        data = {k: v for k, v in data.items() if v not in (None, "")}
 
-        data.update({"category_id": category.id if category else None})
-        data.pop("category", None)
+        if category:
+            if not category == "other":
+                category = category_manager.get_by_slug(db, category)
+                if not category:
+                    # Return a data validation error
+                    return CustomResponse.error(
+                        message="Invalid entry",
+                        data={"category": "Invalid category"},
+                        status_code=422,
+                    )
+            else:
+                category = None
+
+            data.update({"category_id": category.id if category else None})
+            data.pop("category", None)
 
         file_type = data.get("file_type")
         if file_type:
@@ -151,8 +155,6 @@ class UpdateListingView(HTTPMethodView):
             data.update({"image_id": file.id})
         data.pop("file_type", None)
 
-        # Remove keys with values of None
-        data = {k: v for k, v in data.items() if v not in (None, "")}
         listing = listing_manager.update(db, listing, data)
         data = CreateListingResponseDataSchema.from_orm(listing).dict()
         return CustomResponse.success(message="Listing updated successfully", data=data)
