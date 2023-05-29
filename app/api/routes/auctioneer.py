@@ -13,6 +13,7 @@ from app.api.schemas.listings import (
 
 from app.api.schemas.auctioneer import (
     CreateListingSchema,
+    UpdateListingSchema,
     CreateListingResponseSchema,
     CreateListingResponseDataSchema,
     UpdateProfileSchema,
@@ -107,13 +108,13 @@ class UpdateListingView(HTTPMethodView):
     decorators = [authorized()]
 
     @openapi.definition(
-        body=RequestBody({"application/json": CreateListingSchema}, required=True),
+        body=RequestBody({"application/json": UpdateListingSchema}, required=True),
         summary="Update a listing",
         description="This endpoint update a particular listing.",
         response={"application/json": CreateListingResponseSchema},
     )
-    @validate_request(CreateListingSchema)
-    async def put(self, request, **kwargs):
+    @validate_request(UpdateListingSchema)
+    async def patch(self, request, **kwargs):
         data = kwargs.get("data")
         db = request.ctx.db
         user = request.ctx.user
@@ -148,6 +149,8 @@ class UpdateListingView(HTTPMethodView):
             data.update({"image_id": file.id})
         data.pop("file_type", None)
 
+        # Remove keys with values of None
+        data = {k: v for k, v in data.items() if v not in (None, "")}
         listing = listing_manager.update(db, listing, data)
         data = CreateListingResponseDataSchema.from_orm(listing).dict()
         return CustomResponse.success(message="Listing updated successfully", data=data)
