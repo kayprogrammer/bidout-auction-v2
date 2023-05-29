@@ -7,6 +7,7 @@ from app.api.schemas.listings import (
     ListingDataSchema,
     ListingsResponseSchema,
     BidDataSchema,
+    BidsResponseDataSchema,
     BidsResponseSchema,
 )
 
@@ -173,7 +174,10 @@ class AuctioneerListingBidsView(HTTPMethodView):
             return CustomResponse.error("This listing doesn't belong to you!")
 
         bids = bid_manager.get_by_listing_id(db, listing.id)
-        data = [BidDataSchema.from_orm(bid).dict() for bid in bids]
+        data = BidsResponseDataSchema(
+            listing=listing.name,
+            bids=[BidDataSchema.from_orm(bid).dict() for bid in bids],
+        ).dict()
         return CustomResponse.success(message="Listing Bids fetched", data=data)
 
 

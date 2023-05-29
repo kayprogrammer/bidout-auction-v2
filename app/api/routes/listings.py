@@ -11,6 +11,7 @@ from app.api.schemas.listings import (
     CategoriesResponseSchema,
     CreateBidSchema,
     BidDataSchema,
+    BidsResponseDataSchema,
     BidsResponseSchema,
     BidResponseSchema,
     ResponseSchema,
@@ -201,7 +202,7 @@ class ListingsByCategoryView(HTTPMethodView):
 class BidsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all bids in a listing",
-        description="This endpoint retrieves all bids in a particular listing.",
+        description="This endpoint retrieves at most 3 bids from a particular listing.",
         response={"application/json": BidsResponseSchema},
     )
     async def get(self, request, **kwargs):
@@ -212,7 +213,11 @@ class BidsView(HTTPMethodView):
             return CustomResponse.error("Listing does not exist!", status_code=404)
 
         bids = bid_manager.get_by_listing_id(db, listing.id)[:3]
-        data = [BidDataSchema.from_orm(bid).dict() for bid in bids]
+
+        data = BidsResponseDataSchema(
+            listing=listing.name,
+            bids=[BidDataSchema.from_orm(bid).dict() for bid in bids],
+        ).dict()
         return CustomResponse.success(message="Listing Bids fetched", data=data)
 
     @openapi.definition(

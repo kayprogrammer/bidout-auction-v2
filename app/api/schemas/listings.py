@@ -170,8 +170,13 @@ class BidResponseSchema(ResponseSchema):
     data: BidDataSchema
 
 
+class BidsResponseDataSchema(BaseModel):
+    listing: str
+    bids: List[BidDataSchema]
+
+
 class BidsResponseSchema(ResponseSchema):
-    data: List[BidDataSchema]
+    data: BidsResponseDataSchema
 
 
 # -------------------------------------------- #
