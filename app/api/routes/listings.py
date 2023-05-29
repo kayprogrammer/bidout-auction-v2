@@ -256,10 +256,14 @@ class BidsView(HTTPMethodView):
         elif amount <= listing.get_highest_bid():
             return CustomResponse.error("Bid amount must be more than the highest bid!")
 
-        bid = bid_manager.create(
-            db,
-            {"user_id": user.id, "listing_id": listing.id, "amount": amount},
-        )
+        bid = bid_manager.get_by_user_and_listing_id(db, user.id, listing.id)
+        if bid:
+            bid = bid_manager.update(db, bid, {"amount": amount})
+        else:
+            bid = bid_manager.create(
+                db,
+                {"user_id": user.id, "listing_id": listing.id, "amount": amount},
+            )
 
         data = BidDataSchema.from_orm(bid).dict()
         return CustomResponse.success(

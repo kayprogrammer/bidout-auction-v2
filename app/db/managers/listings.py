@@ -41,7 +41,12 @@ class ListingManager(BaseManager[Listing]):
     def get_by_auctioneer_id(
         self, db: Session, auctioneer_id: UUID
     ) -> Optional[Listing]:
-        listings = db.query(self.model).filter_by(auctioneer_id=auctioneer_id).all()
+        listings = (
+            db.query(self.model)
+            .filter_by(auctioneer_id=auctioneer_id)
+            .order_by(self.model.created_at.desc())
+            .all()
+        )
         return listings
 
     def get_by_slug(self, db: Session, slug: str) -> Optional[Listing]:
@@ -53,9 +58,19 @@ class ListingManager(BaseManager[Listing]):
     ) -> Optional[Listing]:
         listings = []
         if category:
-            listings = db.query(self.model).filter_by(category_id=category.id).all()
+            listings = (
+                db.query(self.model)
+                .filter_by(category_id=category.id)
+                .order_by(self.model.created_at.desc())
+                .all()
+            )
         else:
-            listings = db.query(self.model).filter_by(category_id=None).all()
+            listings = (
+                db.query(self.model)
+                .filter_by(category_id=None)
+                .order_by(self.model.created_at.desc())
+                .all()
+            )
         return listings
 
     def create(self, db: Session, obj_in) -> Optional[Listing]:
