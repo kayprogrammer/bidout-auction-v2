@@ -10,7 +10,7 @@ def add_cors_headers(request, response):
     allowed_origin = origin if origin in allowed_origins else allowed_origins[0]
 
     headers = {
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Origin": allowed_origin,
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Headers": "origin, content-type, accept, authorization, x-xsrf-token, x-request-id",
