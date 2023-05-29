@@ -40,6 +40,7 @@ class ListingDataSchema(BaseModel):
     closing_date: datetime
     active: bool
     bids_count: int
+    highest_bid: int
     image_id: UUID = Field(..., example="Ignore this")
     image: Optional[Any]
     watchlist: Optional[bool]
@@ -63,7 +64,11 @@ class ListingDataSchema(BaseModel):
                     content_type=auctioneer.avatar.resource_type,
                 )
             db.close()
-            return {"id": str(auctioneer.id), "name": auctioneer.full_name(), "avatar": avatar}
+            return {
+                "id": str(auctioneer.id),
+                "name": auctioneer.full_name(),
+                "avatar": avatar,
+            }
         db.close()
         return v
 

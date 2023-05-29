@@ -58,6 +58,7 @@ class ListingsView(HTTPMethodView):
                 )
                 else False,
                 bids_count=listing.bids_count,
+                highest_bid=listing.highest_bid,
                 **listing.__dict__
             ).dict()
             for listing in listings
@@ -100,6 +101,7 @@ class ListingsByWatchListView(HTTPMethodView):
             ListingDataSchema(
                 watchlist=True,
                 bids_count=watchlist.listing.bids_count,
+                highest_bid=watchlist.listing.highest_bid,
                 **watchlist.listing.__dict__
             ).dict()
             for watchlist in watchlists
@@ -192,6 +194,7 @@ class ListingsByCategoryView(HTTPMethodView):
                 )
                 else False,
                 bids_count=listing.bids_count,
+                highest_bid=listing.highest_bid,
                 **listing.__dict__
             ).dict()
             for listing in listings
@@ -253,7 +256,7 @@ class BidsView(HTTPMethodView):
             return CustomResponse.error(
                 "Bid amount cannot be less than the bidding price!"
             )
-        elif amount <= listing.get_highest_bid():
+        elif amount <= listing.highest_bid:
             return CustomResponse.error("Bid amount must be more than the highest bid!")
 
         bid = bid_manager.get_by_user_and_listing_id(db, user.id, listing.id)

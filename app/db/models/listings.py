@@ -99,7 +99,8 @@ class Listing(BaseModel):
         remaining_seconds = remaining_time.total_seconds()
         return remaining_seconds
 
-    def get_highest_bid(self):
+    @property
+    def highest_bid(self):
         highest_bid = 0.00
         related_bids = self.listing_bids
         if related_bids:
