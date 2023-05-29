@@ -6,6 +6,7 @@ from app.api.schemas.listings import (
     AddOrRemoveWatchlistSchema,
     ListingDataSchema,
     ListingsResponseSchema,
+    ListingDetailDataSchema,
     ListingResponseSchema,
     CategoryDataSchema,
     CategoriesResponseSchema,
@@ -78,7 +79,17 @@ class ListingDetailView(HTTPMethodView):
         listing = listing_manager.get_by_slug(db, slug)
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
-        data = ListingDataSchema.from_orm(listing).dict()
+
+        related_listings = listing_manager.get_related_listings(
+            db, listing.category_id, slug
+        )
+        data = ListingDetailDataSchema(
+            listing=ListingDataSchema.from_orm(listing),
+            related_listings=[
+                ListingDataSchema.from_orm(related_listing)
+                for related_listing in related_listings
+            ],
+        ).dict()
         return CustomResponse.success(message="Listing details fetched", data=data)
 
 
@@ -204,7 +215,7 @@ class ListingsByCategoryView(HTTPMethodView):
 
 class BidsView(HTTPMethodView):
     @openapi.definition(
-        summary="Retrieve all bids in a listing",
+        summary="Retrieve bids in a listing",
         description="This endpoint retrieves at most 3 bids from a particular listing.",
         response={"application/json": BidsResponseSchema},
     )

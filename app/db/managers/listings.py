@@ -1,5 +1,5 @@
-from typing import Optional, List
-from sqlalchemy import or_, and_, not_, select
+from typing import Optional, List, Any
+from sqlalchemy import or_, not_
 from sqlalchemy.orm import Session
 
 from app.db.managers.base import BaseManager
@@ -53,24 +53,30 @@ class ListingManager(BaseManager[Listing]):
         listing = db.query(self.model).filter_by(slug=slug).first()
         return listing
 
+    def get_related_listings(
+        self, db: Session, category_id: Any, slug: str
+    ) -> Optional[List[Listing]]:
+        listings = (
+            db.query(self.model)
+            .filter_by(category_id=category_id)
+            .filter(self.model.slug != slug)
+            .order_by(self.model.created_at.desc())
+            .all()
+        )
+        return listings
+
     def get_by_category(
         self, db: Session, category: Optional[Category]
     ) -> Optional[Listing]:
-        listings = []
         if category:
-            listings = (
-                db.query(self.model)
-                .filter_by(category_id=category.id)
-                .order_by(self.model.created_at.desc())
-                .all()
-            )
-        else:
-            listings = (
-                db.query(self.model)
-                .filter_by(category_id=None)
-                .order_by(self.model.created_at.desc())
-                .all()
-            )
+            category = category.id
+
+        listings = (
+            db.query(self.model)
+            .filter_by(category_id=category)
+            .order_by(self.model.created_at.desc())
+            .all()
+        )
         return listings
 
     def create(self, db: Session, obj_in) -> Optional[Listing]:

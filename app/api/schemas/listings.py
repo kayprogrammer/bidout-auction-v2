@@ -103,8 +103,13 @@ class ListingDataSchema(BaseModel):
         orm_mode = True
 
 
+class ListingDetailDataSchema(BaseModel):
+    listing: ListingDataSchema
+    related_listings: List[ListingDataSchema]
+
+
 class ListingResponseSchema(ResponseSchema):
-    data: ListingDataSchema
+    data: ListingDetailDataSchema
 
 
 class ListingsResponseSchema(ResponseSchema):
