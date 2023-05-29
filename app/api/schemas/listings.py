@@ -63,7 +63,7 @@ class ListingDataSchema(BaseModel):
                     content_type=auctioneer.avatar.resource_type,
                 )
             db.close()
-            return {"name": auctioneer.full_name(), "avatar": avatar}
+            return {"id": str(auctioneer.id), "name": auctioneer.full_name(), "avatar": avatar}
         db.close()
         return v
 
