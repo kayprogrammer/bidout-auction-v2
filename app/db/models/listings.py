@@ -80,25 +80,17 @@ class Listing(BaseModel):
     def bids_count(self):
         return self.listing_bids.count()
 
-    def time_left(self):
-        remaining_time = self.closing_date - datetime.utcnow()
-        remaining_seconds = remaining_time.total_seconds()
-
-        if self.active == False or remaining_seconds < 0:
-            return "Closed!!!"
-        else:
-            days, seconds = divmod(int(remaining_seconds), 86400)
-            hours, seconds = divmod(seconds, 3600)
-            minutes, seconds = divmod(seconds, 60)
-            return f"-{days:02d}D :{hours:02d}H :{minutes:02d}M :{seconds:02d}S"
-
     @property
     def time_left_seconds(self):
-        if not self.active:
-            return 0
         remaining_time = self.closing_date - datetime.utcnow()
         remaining_seconds = remaining_time.total_seconds()
         return remaining_seconds
+
+    @property
+    def time_left(self):
+        if not self.active:
+            return 0
+        return self.time_left_seconds
 
     @property
     def highest_bid(self):

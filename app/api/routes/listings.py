@@ -262,7 +262,7 @@ class BidsView(HTTPMethodView):
             )
         elif not listing.active:
             return CustomResponse.error("This auction is closed!", status_code=410)
-        elif listing.time_left_seconds < 1:
+        elif listing.time_left < 1:
             return CustomResponse.error(
                 "This auction is expired and closed!", status_code=410
             )
