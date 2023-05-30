@@ -155,7 +155,7 @@ class ListingsByWatchListView(HTTPMethodView):
         status_code = 200
         if not watchlist:
             watchlist_manager.create(db, data_entry)
-            resp_message = "Listing added from user watchlist"
+            resp_message = "Listing added to user watchlist"
             status_code = 201
         else:
             watchlist_manager.delete(db, watchlist)
@@ -233,7 +233,7 @@ class BidsView(HTTPMethodView):
 
         data = BidsResponseDataSchema(
             listing=listing.name,
-            bids=[BidDataSchema.from_orm(bid).dict() for bid in bids],
+            bids=[BidDataSchema.from_orm(bid) for bid in bids],
         ).dict()
         return CustomResponse.success(message="Listing Bids fetched", data=data)
 

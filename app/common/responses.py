@@ -3,20 +3,22 @@ from datetime import datetime
 from uuid import UUID
 
 
+def convert_to_str(value):
+    if isinstance(value, datetime):
+        value = str(value.isoformat())
+    elif isinstance(value, UUID):
+        value = str(value)
+    return value
+
+
 def convert_unserializable_objects_to_string(data):
     if isinstance(data, list):
         for obj in data:
             for key, value in obj.items():
-                if isinstance(value, datetime):
-                    obj[key] = str(value.isoformat())
-                elif isinstance(value, UUID):
-                    obj[key] = str(value)
+                obj[key] = convert_to_str(value)
     else:
         for key, value in data.items():
-            if isinstance(value, datetime):
-                data[key] = str(value.isoformat())
-            elif isinstance(value, UUID):
-                data[key] = str(value)
+            data[key] = convert_to_str(value)
     return data
 
 

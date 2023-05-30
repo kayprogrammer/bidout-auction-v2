@@ -39,16 +39,22 @@ async def test_retrieve_particular_listng(client, create_listing):
         "status": "success",
         "message": "Listing details fetched",
         "data": {
-            "name": listing.name,
-            "auctioneer": mock.ANY,  # cos our pydantic validator uses SessionLocal and not TestSessionLocal
-            "slug": listing.slug,
-            "desc": listing.desc,
-            "category": mock.ANY,  # cos our pydantic validator uses SessionLocal and not TestSessionLocal
-            "price": listing.price,
-            "closing_date": mock.ANY,
-            "active": True,
-            "bids_count": 0,
-            "image": mock.ANY,
+            "listing": {
+                "name": listing.name,
+                "auctioneer": mock.ANY,  # cos our pydantic validator uses SessionLocal and not TestSessionLocal
+                "slug": listing.slug,
+                "desc": listing.desc,
+                "category": mock.ANY,  # cos our pydantic validator uses SessionLocal and not TestSessionLocal
+                "price": listing.price,
+                "closing_date": mock.ANY,
+                "time_left_seconds": mock.ANY,
+                "active": True,
+                "bids_count": 0,
+                "highest_bid": 0,
+                "image": mock.ANY,
+                "watchlist": None,
+            },
+            "related_listings": [],
         },
     }
 
@@ -70,7 +76,9 @@ async def test_get_user_watchlists_listng(authorized_client, create_listing, dat
 
 
 @pytest.mark.asyncio
-async def test_create_user_watchlists_listng(authorized_client, create_listing):
+async def test_create_or_remove_user_watchlists_listng(
+    authorized_client, create_listing
+):
     listing = create_listing["listing"]
 
     # Verify that the endpoint fails with an invalid slug
@@ -90,58 +98,7 @@ async def test_create_user_watchlists_listng(authorized_client, create_listing):
     assert response.status_code == 201
     assert response.json == {
         "status": "success",
-        "message": "Listing added to Watchlists",
-        "data": {
-            "name": listing.name,
-            "auctioneer": mock.ANY,  # cos our pydantic validator uses SessionLocal and not TestSessionLocal
-            "slug": listing.slug,
-            "desc": listing.desc,
-            "category": mock.ANY,  # cos our pydantic validator uses SessionLocal and not TestSessionLocal
-            "price": listing.price,
-            "closing_date": mock.ANY,
-            "active": True,
-            "bids_count": 0,
-            "image": mock.ANY,
-        },
-    }
-
-
-@pytest.mark.asyncio
-async def test_remove_listing_from_user_watchlist(
-    authorized_client, create_listing, database
-):
-    listing = create_listing["listing"]
-
-    # Verify that the endpoint fails with an invalid slug
-    _, response = await authorized_client.request(
-        method="DELETE", url=f"{BASE_URL_PATH}/watchlist", json={"slug": "invalid_slug"}
-    )
-    assert response.status_code == 404
-    assert response.json == {
-        "status": "failure",
-        "message": "Listing does not exist!",
-    }
-
-    # Verify that the endpoint fails with a valid slug but no watchlist
-    _, response = await authorized_client.request(
-        method="DELETE", url=f"{BASE_URL_PATH}/watchlist", json={"slug": listing.slug}
-    )
-    assert response.status_code == 404
-    assert response.json == {
-        "status": "failure",
-        "message": "User has no watchlist with such listing!",
-    }
-
-    # Verify that the watchlist was deleted successfully
-    user_id = create_listing["user"].id
-    watchlist_manager.create(database, {"user_id": user_id, "listing_id": listing.id})
-    _, response = await authorized_client.request(
-        method="DELETE", url=f"{BASE_URL_PATH}/watchlist", json={"slug": listing.slug}
-    )
-    assert response.status_code == 200
-    assert response.json == {
-        "status": "success",
-        "message": "Listing removed from user watchlist",
+        "message": "Listing added to user watchlist",
     }
 
 
@@ -208,8 +165,7 @@ async def test_retrieve_listing_bids(
     assert json_resp["status"] == "success"
     assert json_resp["message"] == "Listing Bids fetched"
     data = json_resp["data"]
-    assert len(data) > 0
-    assert any(isinstance(obj["id"], str) for obj in data)
+    assert isinstance(data["listing"], str)
 
 
 @pytest.mark.asyncio

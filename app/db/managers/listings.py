@@ -215,14 +215,7 @@ class BidManager(BaseManager[Bid]):
             return self.update(db, existing_bid, obj_in)
 
         new_bid = super().create(db, obj_in)
-        listing = new_bid.listing
-        listing_manager.update(db, listing, {"bids_count": listing.bids_count + 1})
         return new_bid
-
-    def delete(self, db: Session, db_obj: Bid):
-        listing = db_obj.listing
-        listing_manager.update(db, listing, {"bids_count": listing.bids_count - 1})
-        return super().delete(db, db_obj)
 
 
 # How to use

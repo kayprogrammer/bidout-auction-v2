@@ -181,6 +181,11 @@ class BidDataSchema(BaseModel):
         db.close()
         return v
 
+    def dict(self, *args, **kwargs):
+        dict_representation = super().dict(*args, **kwargs)
+        dict_representation["id"] = str(dict_representation["id"])
+        return dict_representation
+
     class Config:
         orm_mode = True
 

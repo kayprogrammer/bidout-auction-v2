@@ -185,7 +185,7 @@ class AuctioneerListingBidsView(HTTPMethodView):
         bids = bid_manager.get_by_listing_id(db, listing.id)
         data = BidsResponseDataSchema(
             listing=listing.name,
-            bids=[BidDataSchema.from_orm(bid).dict() for bid in bids],
+            bids=[BidDataSchema.from_orm(bid) for bid in bids],
         ).dict()
         return CustomResponse.success(message="Listing Bids fetched", data=data)
 

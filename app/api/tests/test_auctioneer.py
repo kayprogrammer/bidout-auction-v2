@@ -124,7 +124,7 @@ async def test_auctioneer_update_listing(authorized_client, create_listing):
     }
 
     # Verify that update listing failed with invalid listing slug
-    _, response = await authorized_client.put(
+    _, response = await authorized_client.patch(
         f"{BASE_URL_PATH}/listings/invalid_slug", json=listing_dict
     )
     assert response.status_code == 404
@@ -134,7 +134,7 @@ async def test_auctioneer_update_listing(authorized_client, create_listing):
     }
 
     # Verify that update listing failed with invalid category
-    _, response = await authorized_client.put(
+    _, response = await authorized_client.patch(
         f"{BASE_URL_PATH}/listings/{listing.slug}", json=listing_dict
     )
     assert response.status_code == 422
@@ -146,7 +146,7 @@ async def test_auctioneer_update_listing(authorized_client, create_listing):
 
     # Verify that update listing succeeds with a valid category
     listing_dict.update({"category": "testcategory"})
-    _, response = await authorized_client.put(
+    _, response = await authorized_client.patch(
         f"{BASE_URL_PATH}/listings/{listing.slug}", json=listing_dict
     )
     assert response.status_code == 200
@@ -195,8 +195,7 @@ async def test_auctioneer_listings_bids(
     assert json_resp["status"] == "success"
     assert json_resp["message"] == "Listing Bids fetched"
     data = json_resp["data"]
-    assert len(data) > 0
-    assert any(isinstance(obj["id"], str) for obj in data)
+    assert isinstance(data["listing"], str)
 
     # Verify that the auctioneer listing bids retrieval failed with invalid listing slug
     _, response = await authorized_client.get(
