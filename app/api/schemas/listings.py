@@ -42,7 +42,7 @@ class ListingDataSchema(BaseModel):
     time_left_seconds: int
     active: bool
     bids_count: int
-    highest_bid: int
+    highest_bid: Decimal
     image_id: UUID = Field(..., example="Ignore this")
     image: Optional[Any]
     watchlist: Optional[bool]
