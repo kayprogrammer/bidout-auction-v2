@@ -19,14 +19,13 @@ test_images_directory = os.path.join(CURRENT_DIR, "images")
 
 class CreateData(object):
     def __init__(self, db: Session) -> None:
-        listing_manager.delete_all(db)
-        # self.create_superuser(db)
-        # auctioneer = self.create_auctioneer(db)
-        # reviewer = self.create_reviewer(db)
-        # self.create_sitedetail(db)
-        # self.create_reviews(db, reviewer.id)
-        # category_ids = self.create_categories(db)
-        # self.create_listings(db, category_ids, auctioneer.id)
+        self.create_superuser(db)
+        auctioneer = self.create_auctioneer(db)
+        reviewer = self.create_reviewer(db)
+        self.create_sitedetail(db)
+        self.create_reviews(db, reviewer.id)
+        category_ids = self.create_categories(db)
+        self.create_listings(db, category_ids, auctioneer.id)
 
     def create_superuser(self, db) -> None:
         superuser = user_manager.get_by_email(db, settings.FIRST_SUPERUSER_EMAIL)
