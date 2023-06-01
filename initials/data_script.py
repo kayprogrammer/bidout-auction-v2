@@ -1,19 +1,32 @@
 from app.core.config import settings
 from app.db.managers.accounts import user_manager
 from app.db.managers.general import sitedetail_manager, review_manager
-from app.db.managers.listings import category_manager
+from app.db.managers.listings import category_manager, listing_manager
+from app.db.managers.base import file_manager
+from app.api.utils.file_processors import FileProcessor
 
 from sqlalchemy.orm import Session
+from pathlib import Path
+from .mappings import listing_mappings, category_mappings, file_mappings
+from datetime import datetime, timedelta
+from slugify import slugify
+import os
+import random
+
+CURRENT_DIR = Path(__file__).resolve().parent
+test_images_directory = os.path.join(CURRENT_DIR, "images")
 
 
 class CreateData(object):
     def __init__(self, db: Session) -> None:
-        self.create_superuser(db)
-        self.create_auctioneer(db)
-        reviewer = self.create_reviewer(db)
-        self.create_sitedetail(db)
-        self.create_reviews(db, reviewer.id)
-        self.create_categories(db)
+        listing_manager.delete_all(db)
+        # self.create_superuser(db)
+        # auctioneer = self.create_auctioneer(db)
+        # reviewer = self.create_reviewer(db)
+        # self.create_sitedetail(db)
+        # self.create_reviews(db, reviewer.id)
+        # category_ids = self.create_categories(db)
+        # self.create_listings(db, category_ids, auctioneer.id)
 
     def create_superuser(self, db) -> None:
         superuser = user_manager.get_by_email(db, settings.FIRST_SUPERUSER_EMAIL)
@@ -88,15 +101,32 @@ class CreateData(object):
         ]
 
     def create_categories(self, db) -> None:
-        categories = category_manager.get_all(db)
-        if len(categories) < 1:
-            category_manager.bulk_create(db, self.category_mappings())
-        pass
+        category_ids = category_manager.get_all_ids(db)
+        if len(category_ids) < 1:
+            category_ids = category_manager.bulk_create(db, category_mappings)
+        return category_ids
 
-    def category_mappings(self):
-        return [
-            {"name": "Tecnology", "slug": "technology"},
-            {"name": "Accessories", "slug": "accessories"},
-            {"name": "Automobile", "slug": "automobile"},
-            {"name": "Fashion", "slug": "fashion"},
-        ]
+    def create_listings(self, db, category_ids, auctioneer_id) -> None:
+        listings = listing_manager.get_all(db)
+        if len(listings) < 1:
+            image_ids = file_manager.bulk_create(db, file_mappings)
+            updated_listing_mappings = []
+            for idx, mapping in enumerate(listing_mappings):
+                mapping.update(
+                    {
+                        "slug": slugify(mapping["name"]),
+                        "category_id": random.choice(category_ids),
+                        "desc": "Korem ipsum dolor amet, consectetur adipiscing elit. Maece nas in pulvinar neque. Nulla finibus lobortis pulvinar. Donec a consectetur nulla.",
+                        "auctioneer_id": auctioneer_id,
+                        "closing_date": datetime.now() + timedelta(days=7 + idx),
+                        "image_id": image_ids[idx],
+                    }
+                )
+                updated_listing_mappings.append(mapping)
+            listing_manager.bulk_create(db, updated_listing_mappings)
+
+            # Upload Images
+            for idx, image_file in enumerate(os.listdir(test_images_directory)):
+                image_path = os.path.join(test_images_directory, image_file)
+                FileProcessor.upload_file(image_path, str(image_ids[idx]), "listings")
+        pass

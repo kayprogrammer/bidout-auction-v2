@@ -24,6 +24,11 @@ class BaseManager(Generic[ModelType]):
     def get_all(self, db: Session) -> Optional[List[ModelType]]:
         return db.query(self.model).all()
 
+    def get_all_ids(self, db: Session) -> Optional[List[ModelType]]:
+        items = db.query(self.model.id).all()
+        ids = [item[0] for item in items]
+        return ids
+
     def get_by_id(self, db: Session, id: UUID) -> Optional[ModelType]:
         return db.query(self.model).filter_by(id=id).first()
 
@@ -43,9 +48,15 @@ class BaseManager(Generic[ModelType]):
         return obj
 
     def bulk_create(self, db: Session, obj_in: list) -> Optional[bool]:
-        db.execute(insert(self.model).values(obj_in).on_conflict_do_nothing())
+        items = db.execute(
+            insert(self.model)
+            .values(obj_in)
+            .on_conflict_do_nothing()
+            .returning(self.model.id)
+        )
         db.commit()
-        return True
+        ids = [item[0] for item in items]
+        return ids
 
     def update(
         self, db: Session, db_obj: Optional[ModelType], obj_in: Optional[ModelType]

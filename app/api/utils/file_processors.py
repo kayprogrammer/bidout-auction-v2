@@ -2,6 +2,7 @@ from app.common.responses import CustomResponse
 from app.core.config import settings
 import time
 import cloudinary
+import cloudinary.uploader
 import mimetypes
 
 BASE_FOLDER = "bidout-auction-v2/"
@@ -41,3 +42,11 @@ class FileProcessor:
         except Exception as e:
             print(e)
             return CustomResponse.error("Couldn't generate file url!")
+
+    def upload_file(file, key, folder):
+        key = f"{BASE_FOLDER}{folder}/{key}"
+        try:
+            cloudinary.uploader.upload(file, public_id=key, overwrite=True, faces=True)
+        except Exception as e:
+            print(e)
+            pass
