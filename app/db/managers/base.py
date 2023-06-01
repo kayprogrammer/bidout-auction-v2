@@ -78,8 +78,9 @@ class BaseManager(Generic[ModelType]):
 
     def delete_by_id(self, db: Session, id: UUID):
         obj = db.query(self.model).filter_by(id=id).first()
-        db.delete(obj)
-        db.commit()
+        if obj:
+            db.delete(obj)
+            db.commit()
 
     def delete_all(self, db: Session):
         db.query(self.model).delete()
