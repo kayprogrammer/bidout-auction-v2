@@ -1,5 +1,5 @@
 from app.api.utils.tokens import decodeJWT
-from app.db.managers.base import user_session_manager
+from app.db.managers.base import guest_user_manager
 from app.db.models.accounts import User
 from app.core.config import settings
 
@@ -52,7 +52,7 @@ def inject_current_user(request):
         # Let the user context object contain a session key
         session_key = request.cookies.get("session_key")
         if not session_key:
-            session_key_obj = user_session_manager.create(db)
+            session_key_obj = guest_user_manager.create(db)
             session_key = str(session_key_obj.id)
         request.ctx.user = RequestUserObject(user=session_key)
 
@@ -65,7 +65,7 @@ def inject_or_remove_session_key(request, response):
     if request.ctx.user.is_authenticated:
         session_key = request.cookies.get("session_key")
         if session_key:
-            user_session_manager.delete_by_id(db, session_key)
+            guest_user_manager.delete_by_id(db, session_key)
             response.delete_cookie("session_key")
     else:
         session_key = request.cookies.get("session_key")

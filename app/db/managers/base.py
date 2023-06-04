@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.core.database import Base
-from app.db.models.base import File, UserSession
+from app.db.models.base import File, GuestUser
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -91,9 +91,9 @@ class FileManager(BaseManager[File]):
     pass
 
 
-class UserSessionManager(BaseManager[UserSession]):
+class GuestUserManager(BaseManager[GuestUser]):
     pass
 
 
 file_manager = FileManager(File)
-user_session_manager = UserSessionManager(UserSession)
+guest_user_manager = GuestUserManager(GuestUser)

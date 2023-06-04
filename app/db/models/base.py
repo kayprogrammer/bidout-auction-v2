@@ -31,5 +31,5 @@ class File(BaseModel):
     )
 
 
-class UserSession(BaseModel):
-    __tablename__ = "usersessions"
+class GuestUser(BaseModel):
+    __tablename__ = "guestusers"
