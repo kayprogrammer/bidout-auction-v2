@@ -28,8 +28,8 @@ class UserManager(BaseManager[User]):
 
 class OtpManager(BaseManager[Otp]):
     def get_by_user_id(self, db: Session, user_id: str) -> Optional[Otp]:
-        jwt = db.query(self.model).filter_by(user_id=user_id).first()
-        return jwt
+        otp = db.query(self.model).filter_by(user_id=user_id).first()
+        return otp
 
     def create(self, db: Session, obj_in) -> Optional[Otp]:
         code = random.randint(100000, 999999)
