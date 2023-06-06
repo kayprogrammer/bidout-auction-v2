@@ -19,10 +19,10 @@ async def test_retrieve_sitedetail(client):
 
 @pytest.mark.asyncio
 async def test_subscribe(client):
-    subscriber_dict = {"email": "test_subscriber@example.com"}
-
     # Check response validity
-    _, response = await client.post(f"{BASE_URL_PATH}/subscribe", json=subscriber_dict)
+    _, response = await client.post(
+        f"{BASE_URL_PATH}/subscribe", json={"email": "test_subscriber@example.com"}
+    )
     assert response.status_code == 201
     assert response.json == {
         "status": "success",

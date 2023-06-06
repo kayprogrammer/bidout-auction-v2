@@ -46,7 +46,7 @@ def event_loop():
 
 
 @pytest_asyncio.fixture(scope="session")
-def sort_client(request):
+def sort_client():
     db = TestSessionLocal()
 
     def inject_db_session(request):
