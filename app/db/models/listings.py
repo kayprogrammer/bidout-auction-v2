@@ -54,7 +54,7 @@ class Listing(BaseModel):
 
     image_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("files.id", ondelete="CASCADE"),
+        ForeignKey("files.id", ondelete="SET NULL"),
         unique=True,
     )
     image = relationship(
