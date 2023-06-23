@@ -36,6 +36,7 @@ def event_loop():
     yield loop
     loop.close()
 
+
 @pytest_asyncio.fixture(scope="session")
 async def engine(test_db):
     pg_host = test_db.host
@@ -52,10 +53,11 @@ async def engine(test_db):
         Base.metadata.create_all(bind=engine)
         yield engine
 
+
 @pytest_asyncio.fixture(scope="session")
 def sort_client(engine):
     TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
+
     db = TestSessionLocal()
 
     def inject_db_session(request):
