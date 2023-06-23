@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.database import Base
-from app.core.config import settings
 from app.db.managers.accounts import (
     jwt_manager,
     user_manager,
@@ -20,18 +19,11 @@ from app.common.middlewares import (
     inject_current_user,
     inject_or_remove_session_key,
 )
-import pytest_asyncio
-import asyncio
+from pytest_postgresql import factories
+from pytest_postgresql.janitor import DatabaseJanitor
+import pytest_asyncio, asyncio
 
-# CONFIGURE TEST DATABASE
-TEST_DATABASE = f"{settings.SQLALCHEMY_DATABASE_URL}_test"
-
-engine = create_engine(TEST_DATABASE, future=True)
-
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(bind=engine)
-# --------------------------------
+test_db = factories.postgresql_proc(port=None, dbname="test_db")
 
 BASE_AUTH_URL_PATH = "/api/v2/auth"
 
@@ -44,9 +36,26 @@ def event_loop():
     yield loop
     loop.close()
 
+@pytest_asyncio.fixture(scope="session")
+async def engine(test_db):
+    pg_host = test_db.host
+    pg_port = test_db.port
+    pg_user = test_db.user
+    pg_db = test_db.dbname
+    pg_password = test_db.password
+
+    with DatabaseJanitor(
+        pg_user, pg_host, pg_port, pg_db, test_db.version, pg_password
+    ):
+        connection_str = f"postgresql://{pg_user}:@{pg_host}:{pg_port}/{pg_db}"
+        engine = create_engine(connection_str, future=True)
+        Base.metadata.create_all(bind=engine)
+        yield engine
 
 @pytest_asyncio.fixture(scope="session")
-def sort_client():
+def sort_client(engine):
+    TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    
     db = TestSessionLocal()
 
     def inject_db_session(request):
@@ -65,11 +74,12 @@ def sort_client():
     app.register_middleware(inject_current_user, "request")
     app.register_middleware(inject_or_remove_session_key, "response")
 
-    yield {"database": db, "app": app}
+    yield {"engine": engine, "database": db, "app": app}
 
 
 @pytest_asyncio.fixture
 async def database(sort_client):
+    engine = sort_client["engine"]
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = sort_client["database"]
