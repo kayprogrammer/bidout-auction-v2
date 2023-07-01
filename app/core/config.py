@@ -77,6 +77,7 @@ class Settings(BaseSettings):
 
     @validator("CORS_ALLOWED_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v):
+        v = v.replace('"', "")
         return v.split()
 
     class Config:
