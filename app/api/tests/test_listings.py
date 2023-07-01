@@ -25,7 +25,7 @@ async def test_retrieve_particular_listng(client, create_listing):
     listing = create_listing["listing"]
 
     # Verify that a particular listing retrieval fails with an invalid slug
-    _, response = await client.get(f"{BASE_URL_PATH}/invalid_slug")
+    _, response = await client.get(f"{BASE_URL_PATH}/detail/invalid_slug")
     assert response.status_code == 404
     assert response.json == {
         "status": "failure",
@@ -33,7 +33,7 @@ async def test_retrieve_particular_listng(client, create_listing):
     }
 
     # Verify that a particular listing is retrieved successfully
-    _, response = await client.get(f"{BASE_URL_PATH}/{listing.slug}")
+    _, response = await client.get(f"{BASE_URL_PATH}/detail/{listing.slug}")
     assert response.status_code == 200
     assert response.json == {
         "status": "success",
@@ -154,12 +154,12 @@ async def test_retrieve_listing_bids(
     )
 
     # Verify that listings by an invalid listing slug fails
-    _, response = await client.get(f"{BASE_URL_PATH}/invalid_category_slug/bids")
+    _, response = await client.get(f"{BASE_URL_PATH}/detail/invalid_category_slug/bids")
     assert response.status_code == 404
     assert response.json == {"status": "failure", "message": "Listing does not exist!"}
 
     # Verify that all listings by a valid listing slug are retrieved successfully
-    _, response = await client.get(f"{BASE_URL_PATH}/{listing.slug}/bids")
+    _, response = await client.get(f"{BASE_URL_PATH}/detail/{listing.slug}/bids")
     assert response.status_code == 200
     json_resp = response.json
     assert json_resp["status"] == "success"
@@ -176,7 +176,7 @@ async def test_create_bid(
 
     # Verify that the endpoint fails with an invalid slug
     _, response = await authorized_client.post(
-        f"{BASE_URL_PATH}/invalid_category_slug/bids", json={"amount": 10000}
+        f"{BASE_URL_PATH}/detail/invalid_listing_slug/bids", json={"amount": 10000}
     )
     assert response.status_code == 404
     assert response.json == {
@@ -186,7 +186,7 @@ async def test_create_bid(
 
     # Verify that the endpoint fails with an invalid user
     _, response = await authorized_client.post(
-        f"{BASE_URL_PATH}/{listing.slug}/bids", json={"amount": 10000}
+        f"{BASE_URL_PATH}/detail/{listing.slug}/bids", json={"amount": 10000}
     )
     assert response.status_code == 403
     assert response.json == {
@@ -205,7 +205,7 @@ async def test_create_bid(
 
     # Verify that the endpoint fails with a lesser bidding price
     _, response = await authorized_client.post(
-        f"{BASE_URL_PATH}/{listing.slug}/bids", json={"amount": 100}
+        f"{BASE_URL_PATH}/detail/{listing.slug}/bids", json={"amount": 100}
     )
     assert response.status_code == 400
     assert response.json == {
@@ -215,7 +215,7 @@ async def test_create_bid(
 
     # Verify that the bid was created successfully
     _, response = await authorized_client.post(
-        f"{BASE_URL_PATH}/{listing.slug}/bids", json={"amount": 10000}
+        f"{BASE_URL_PATH}/detail/{listing.slug}/bids", json={"amount": 10000}
     )
     assert response.status_code == 201
     assert response.json == {
