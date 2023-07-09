@@ -69,6 +69,7 @@ app.ctx.template_env = env
 # EXTRA CONFIGS
 app.config.SECRET = settings.SECRET_KEY
 
+
 @openapi.definition(
     tag="HealthCheck",
     summary="API Health Check",
