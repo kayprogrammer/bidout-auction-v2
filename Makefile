@@ -28,9 +28,9 @@ mmig: # run with "make mmig" or "make mmig message='migration message'"
 	fi
 	
 mig:
-	alembic upgrade heads && python initials/initial_data.py
+	alembic upgrade heads
 
-initial_data:
+init:
 	python initials/initial_data.py
 
 tests:

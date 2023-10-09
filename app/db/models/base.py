@@ -33,3 +33,7 @@ class File(BaseModel):
 
 class GuestUser(BaseModel):
     __tablename__ = "guestusers"
+
+    @property
+    def is_authenticated(self):
+        return False

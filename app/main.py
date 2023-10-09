@@ -16,7 +16,6 @@ from app.common.exception_handlers import (
 from app.common.middlewares import (
     add_cors_headers,
     inject_current_user,
-    inject_or_remove_session_key,
 )
 from pydantic import ValidationError
 
@@ -39,19 +38,20 @@ app.ext.openapi.describe(
     description="This is a simple Auction API",
 )
 app.ext.openapi.add_security_scheme(
+    ident="guest", name="GuestUserId", type="apiKey", location="header"
+)
+app.ext.openapi.add_security_scheme(
     "token",
     "http",
     scheme="bearer",
     bearer_format="JWT",
 )
-app.ext.openapi.secured("token")
 # --------------------------
 # REGISTER MIDDLEWARES
 app.register_middleware(add_cors_headers, "response", priority=99)
 app.register_middleware(inject_db_session, "request")
 app.register_middleware(close_db_session, "response")
 app.register_middleware(inject_current_user, "request")
-app.register_middleware(inject_or_remove_session_key, "response")
 
 # EXCEPTION HANDLERS
 app.error_handler.add(Exception, sanic_exceptions_handler)

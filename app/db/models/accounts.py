@@ -62,6 +62,10 @@ class User(BaseModel):
     def __repr__(self):
         return self.full_name()
 
+    @property
+    def is_authenticated(self):
+        return True
+
 
 class Jwt(BaseModel):
     __tablename__ = "jwts"

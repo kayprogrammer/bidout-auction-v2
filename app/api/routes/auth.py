@@ -185,9 +185,10 @@ class LoginView(HTTPMethodView):
         description="This endpoint generates new access and refresh tokens for authentication",
         response={"application/json": ResponseSchema},
     )
+    @openapi.secured("guest")
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
         email = data["email"]
         plain_password = data["password"]
         user = user_manager.get_by_email(db, email)
@@ -207,7 +208,7 @@ class LoginView(HTTPMethodView):
         )
 
         # Move all guest user watchlists to the authenticated user watchlists
-        session_key = request.cookies.get("session_key")
+        session_key = request.ctx.user.id
         guest_user_watchlists = watchlist_manager.get_by_session_key(
             db, session_key, user.id
         )
@@ -223,7 +224,6 @@ class LoginView(HTTPMethodView):
             data={"access": access, "refresh": refresh},
             status_code=201,
         )
-        response.delete_cookie("session_key")
         return response
 
 
@@ -269,6 +269,7 @@ class LogoutView(HTTPMethodView):
         response={"application/json": ResponseSchema},
         operation="security",
     )
+    @openapi.secured("token")
     async def get(self, request, **kwargs):
         db = request.ctx.db
         user = request.ctx.user

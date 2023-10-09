@@ -39,11 +39,10 @@ class ListingsView(HTTPMethodView):
         response={"application/json": ListingsResponseSchema},
         parameter={"name": "quantity", "location": "query", "schema": int},
     )
+    @openapi.secured("token", "guest")
     async def get(self, request, **kwargs):
         db = request.ctx.db
-        user = request.ctx.user
-        if hasattr(user, "email"):
-            user = user.id
+        client_id = request.ctx.user.id
 
         quantity = validate_quantity(request.args.get("quantity"))
         listings = listing_manager.get_all(db)
@@ -55,7 +54,7 @@ class ListingsView(HTTPMethodView):
             ListingDataSchema(
                 watchlist=True
                 if watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
-                    db, str(user), listing.id
+                    db, client_id, listing.id
                 )
                 else False,
                 bids_count=listing.bids_count,
@@ -74,6 +73,7 @@ class ListingDetailView(HTTPMethodView):
         description="This endpoint retrieves detail of a listing",
         response={"application/json": ListingResponseSchema},
     )
+    @openapi.secured("token", "guest")
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
         db = request.ctx.db
@@ -102,13 +102,12 @@ class ListingsByWatchListView(HTTPMethodView):
         description="This endpoint retrieves all listings",
         response={"application/json": ListingsResponseSchema},
     )
+    @openapi.secured("token", "guest")
     async def get(self, request, **kwargs):
         db = request.ctx.db
-        user = request.ctx.user
-        if hasattr(user, "email"):
-            user = user.id
+        client_id = request.ctx.user.id
 
-        watchlists = watchlist_manager.get_by_user_id_or_session_key(db, user)
+        watchlists = watchlist_manager.get_by_user_id_or_session_key(db, client_id)
         data = [
             ListingDataSchema(
                 watchlist=True,
@@ -129,26 +128,27 @@ class ListingsByWatchListView(HTTPMethodView):
         description="This endpoint adds or removes a listing from a user's watchlist, authenticated or not.",
         response={"application/json": ResponseSchema},
     )
+    @openapi.secured("token", "guest")
     @validate_request(AddOrRemoveWatchlistSchema)
     async def post(self, request, **kwargs):
-        data = kwargs.get("data")
+        data = kwargs["data"]
         db = request.ctx.db
         user = request.ctx.user
-        slug = data.get("slug")
+        client_id = user.id
+        slug = data["slug"]
 
         listing = listing_manager.get_by_slug(db, slug)
         if not listing:
             return CustomResponse.error("Listing does not exist!", status_code=404)
 
-        data_entry = {"session_key": str(user), "listing_id": listing.id}
-        if hasattr(user, "email"):
-            # Here we know its a user object and not a session key string, now we can retrieve id.
-            user = user.id
+        data_entry = {"session_key": client_id, "listing_id": listing.id}
+        if user.is_authenticated:
+            # Here we know its an auth user and not a guest, now we can retrieve id.
             del data_entry["session_key"]
-            data_entry["user_id"] = user
+            data_entry["user_id"] = client_id
 
         watchlist = watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
-            db, str(user), listing.id
+            db, client_id, listing.id
         )
 
         resp_message = "Listing removed from user watchlist"
@@ -160,7 +160,12 @@ class ListingsByWatchListView(HTTPMethodView):
         else:
             watchlist_manager.delete(db, watchlist)
 
-        return CustomResponse.success(message=resp_message, status_code=status_code)
+        guestuser_id = client_id if not user.is_authenticated else None
+        return CustomResponse.success(
+            message=resp_message,
+            data={"guestuser_id": guestuser_id},
+            status_code=status_code,
+        )
 
 
 class CategoryListView(HTTPMethodView):
@@ -169,6 +174,7 @@ class CategoryListView(HTTPMethodView):
         description="This endpoint retrieves all categories",
         response={"application/json": CategoriesResponseSchema},
     )
+    @openapi.secured("token", "guest")
     async def get(self, request, **kwargs):
         db = request.ctx.db
         categories = category_manager.get_all(db)
@@ -184,6 +190,7 @@ class ListingsByCategoryView(HTTPMethodView):
         description="This endpoint retrieves all listings in a particular category. Use slug 'other' for category other",
         response={"application/json": ListingsResponseSchema},
     )
+    @openapi.secured("token", "guest")
     async def get(self, request, **kwargs):
         db = request.ctx.db
         slug = kwargs.get("slug")
@@ -194,16 +201,14 @@ class ListingsByCategoryView(HTTPMethodView):
             if not category:
                 return CustomResponse.error("Invalid category", status_code=404)
 
-        user = request.ctx.user
-        if hasattr(user, "email"):
-            user = user.id
+        client_id = request.ctx.user.id
 
         listings = listing_manager.get_by_category(db, category)
         data = [
             ListingDataSchema(
                 watchlist=True
                 if watchlist_manager.get_by_user_id_or_session_key_and_listing_id(
-                    db, str(user), listing.id
+                    db, client_id, listing.id
                 )
                 else False,
                 bids_count=listing.bids_count,
@@ -222,6 +227,7 @@ class BidsView(HTTPMethodView):
         description="This endpoint retrieves at most 3 bids from a particular listing.",
         response={"application/json": BidsResponseSchema},
     )
+    @openapi.secured("token", "guest")
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
         db = request.ctx.db
@@ -245,6 +251,7 @@ class BidsView(HTTPMethodView):
     )
     @authorized()
     @validate_request(CreateBidSchema)
+    @openapi.secured("token")
     async def post(self, request, **kwargs):
         slug = kwargs.get("slug")
         data = kwargs.get("data")

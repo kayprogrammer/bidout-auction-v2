@@ -1,8 +1,8 @@
-"""initial migrations
+"""Initial Migrations
 
-Revision ID: fe55c7bdb165
+Revision ID: 4d1a8e808c72
 Revises: 
-Create Date: 2023-04-28 14:16:48.503896
+Create Date: 2023-10-09 23:54:32.507146
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "fe55c7bdb165"
+revision = "4d1a8e808c72"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -42,6 +42,15 @@ def upgrade() -> None:
         sa.UniqueConstraint("id"),
     )
     op.create_table(
+        "guestusers",
+        sa.Column("pkid", sa.Integer(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint("pkid"),
+        sa.UniqueConstraint("id"),
+    )
+    op.create_table(
         "sitedetails",
         sa.Column("name", sa.String(length=300), nullable=True),
         sa.Column("email", sa.String(length=300), nullable=True),
@@ -59,7 +68,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("id"),
     )
     op.create_table(
-        "suscribers",
+        "subscribers",
         sa.Column("email", sa.String(), nullable=True),
         sa.Column("exported", sa.Boolean(), nullable=True),
         sa.Column("pkid", sa.Integer(), nullable=False),
@@ -71,15 +80,6 @@ def upgrade() -> None:
         sa.UniqueConstraint("id"),
     )
     op.create_table(
-        "usersessions",
-        sa.Column("pkid", sa.Integer(), nullable=False),
-        sa.Column("id", sa.UUID(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint("pkid"),
-        sa.UniqueConstraint("id"),
-    )
-    op.create_table(
         "users",
         sa.Column("first_name", sa.String(length=50), nullable=True),
         sa.Column("last_name", sa.String(length=50), nullable=True),
@@ -88,6 +88,7 @@ def upgrade() -> None:
         sa.Column("is_email_verified", sa.Boolean(), nullable=True),
         sa.Column("is_superuser", sa.Boolean(), nullable=True),
         sa.Column("is_staff", sa.Boolean(), nullable=True),
+        sa.Column("terms_agreement", sa.Boolean(), nullable=True),
         sa.Column("avatar_id", sa.UUID(), nullable=True),
         sa.Column("pkid", sa.Integer(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=True),
@@ -123,7 +124,6 @@ def upgrade() -> None:
         sa.Column("price", sa.Numeric(precision=10, scale=2), nullable=True),
         sa.Column("closing_date", sa.DateTime(), nullable=True),
         sa.Column("active", sa.Boolean(), nullable=True),
-        sa.Column("bids_count", sa.Integer(), nullable=True),
         sa.Column("image_id", sa.UUID(), nullable=True),
         sa.Column("pkid", sa.Integer(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=True),
@@ -133,7 +133,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["category_id"], ["categories.id"], ondelete="SET NULL"
         ),
-        sa.ForeignKeyConstraint(["image_id"], ["files.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["image_id"], ["files.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("pkid"),
         sa.UniqueConstraint("id"),
         sa.UniqueConstraint("image_id"),
@@ -185,12 +185,13 @@ def upgrade() -> None:
         "watchlists",
         sa.Column("user_id", sa.UUID(), nullable=True),
         sa.Column("listing_id", sa.UUID(), nullable=True),
-        sa.Column("session_key", sa.String(), nullable=True),
+        sa.Column("session_key", sa.UUID(), nullable=True),
         sa.Column("pkid", sa.Integer(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(["listing_id"], ["listings.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["session_key"], ["guestusers.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("pkid"),
         sa.UniqueConstraint("id"),
@@ -213,9 +214,9 @@ def downgrade() -> None:
     op.drop_table("listings")
     op.drop_table("jwts")
     op.drop_table("users")
-    op.drop_table("usersessions")
-    op.drop_table("suscribers")
+    op.drop_table("subscribers")
     op.drop_table("sitedetails")
+    op.drop_table("guestusers")
     op.drop_table("files")
     op.drop_table("categories")
     # ### end Alembic commands ###

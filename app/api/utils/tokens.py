@@ -12,6 +12,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
 
+
 # generate random string
 def get_random(length):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))

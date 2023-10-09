@@ -114,7 +114,6 @@ async def test_resend_verification_email(client, test_user, database):
 
 @pytest.mark.asyncio
 async def test_login(client, test_user, database):
-
     # Test for invalid credentials
     _, response = await client.post(
         f"{BASE_URL_PATH}/login",
@@ -154,7 +153,6 @@ async def test_login(client, test_user, database):
 
 @pytest.mark.asyncio
 async def test_refresh_token(client, database, verified_user):
-
     jwt_obj = jwt_manager.create(
         database,
         {"user_id": str(verified_user.id), "access": "access", "refresh": "refresh"},

@@ -135,24 +135,30 @@ class WatchListManager(BaseManager[WatchList]):
         return watchlist
 
     def get_by_user_id_or_session_key(
-        self, db: Session, id: UUID
+        self, db: Session, client_id: UUID
     ) -> Optional[List[WatchList]]:
-        if not isinstance(id, UUID):
-            id = UUID(id)
         watchlist = (
             db.query(self.model)
-            .filter(or_(self.model.user_id == id, self.model.session_key == str(id)))
+            .filter(
+                or_(
+                    self.model.user_id == client_id, self.model.session_key == client_id
+                )
+            )
             .order_by(self.model.created_at.desc())
             .all()
         )
         return watchlist
 
     def get_by_user_id_or_session_key_and_listing_id(
-        self, db: Session, id: UUID, listing_id: UUID
+        self, db: Session, client_id: UUID, listing_id: UUID
     ) -> Optional[List[WatchList]]:
         watchlist = (
             db.query(self.model)
-            .filter(or_(self.model.user_id == id, self.model.session_key == str(id)))
+            .filter(
+                or_(
+                    self.model.user_id == client_id, self.model.session_key == client_id
+                )
+            )
             .filter(self.model.listing_id == listing_id)
             .first()
         )

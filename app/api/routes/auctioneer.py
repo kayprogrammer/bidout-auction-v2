@@ -47,6 +47,7 @@ class AuctioneerListingsView(HTTPMethodView):
         response={"application/json": ListingsResponseSchema},
         parameter={"name": "quantity", "location": "query", "schema": str},
     )
+    @openapi.secured("token")
     async def get(self, request, **kwargs):
         db = request.ctx.db
         user = request.ctx.user
@@ -65,6 +66,7 @@ class AuctioneerListingsView(HTTPMethodView):
         description="This endpoint creates a new listing. Note: Use the returned upload_url to upload image to cloudinary",
         response={"application/json": CreateListingResponseSchema},
     )
+    @openapi.secured("token")
     @validate_request(CreateListingSchema)
     async def post(self, request, **kwargs):
         data = kwargs.get("data")
@@ -113,6 +115,7 @@ class UpdateListingView(HTTPMethodView):
         description="This endpoint update a particular listing.",
         response={"application/json": CreateListingResponseSchema},
     )
+    @openapi.secured("token")
     @validate_request(UpdateListingSchema)
     async def patch(self, request, **kwargs):
         data = kwargs.get("data")
@@ -168,6 +171,7 @@ class AuctioneerListingBidsView(HTTPMethodView):
         description="This endpoint retrieves all bids in a particular listing by the current user.",
         response={"application/json": BidsResponseSchema},
     )
+    @openapi.secured("token")
     async def get(self, request, **kwargs):
         slug = kwargs.get("slug")
         db = request.ctx.db
@@ -198,6 +202,7 @@ class ProfileView(HTTPMethodView):
         description="This endpoint gets the current user's profile.",
         response={"application/json": ProfileResponseSchema},
     )
+    @openapi.secured("token")
     async def get(self, request, **kwargs):
         data = kwargs.get("data")
         user = request.ctx.user
@@ -211,6 +216,7 @@ class ProfileView(HTTPMethodView):
         description="This endpoint updates an authenticated user's profile. Note: use the returned upload_url to upload avatar to cloudinary",
         response={"application/json": UpdateProfileResponseSchema},
     )
+    @openapi.secured("token")
     @validate_request(UpdateProfileSchema)
     async def put(self, request, **kwargs):
         data = kwargs.get("data")

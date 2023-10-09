@@ -92,7 +92,11 @@ class FileManager(BaseManager[File]):
 
 
 class GuestUserManager(BaseManager[GuestUser]):
-    pass
+    def get_or_create(self, db: Session, id):
+        guestuser = self.get_by_id(db, id)
+        if not guestuser:
+            guestuser = self.create(db)
+        return guestuser
 
 
 file_manager = FileManager(File)
