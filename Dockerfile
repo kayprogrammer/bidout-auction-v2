@@ -16,7 +16,6 @@ WORKDIR /build
 
 COPY ./app ./app
 COPY ./initials ./initials
-COPY ./.env .
 COPY ./requirements.txt .
 COPY ./alembic.ini .
 
