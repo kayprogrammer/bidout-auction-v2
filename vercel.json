@@ -3,12 +3,15 @@
     "builds": [
         {
             "src": "app/main.py",
-            "use": "@vercel/python"
+            "use": "@vercel/python",
+            "config": {
+                "runtime": "python3.9"
+            }
         }
     ],
     "routes": [
         {
-            "src": "(.*)",
+            "src": "/(.*)",
             "dest": "/app/main.py"
         }
     ]
