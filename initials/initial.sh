@@ -10,4 +10,4 @@ alembic upgrade heads
 python initials/initial_data.py
 
 # Start application
-python server.py 
+python app/server.py 
