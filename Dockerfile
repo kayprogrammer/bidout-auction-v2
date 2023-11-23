@@ -1,9 +1,7 @@
-FROM python:3.9-slim-buster
+FROM python:3.11-slim-buster
 
-RUN apt-get update && apt-get install -y libmagic-dev
+RUN apt-get update
 
-# Our Debian with Python and Nginx for python apps.
-# See https://hub.docker.com/r/nginx/unit/
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -20,7 +18,6 @@ COPY ./app ./app
 COPY ./initials ./initials
 COPY ./requirements.txt .
 COPY ./alembic.ini .
-
 
 # We copy our app folder to the /build
 

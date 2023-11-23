@@ -10,4 +10,4 @@ alembic upgrade heads
 python initials/initial_data.py
 
 # Start application
-python app/server.py 
+sanic app.main:app --host 0.0.0.0 --port 8000
