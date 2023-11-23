@@ -25,6 +25,6 @@ RUN pip install -r requirements.txt
 
 RUN chmod +x ./initials/initial.sh
 
-CMD ["/bin/bash", "-c", "./initials/initial.sh"]
+CMD ["bash", "./initials/initial.sh"]
 
 ENV PYTHONPATH=/build
