@@ -5,9 +5,9 @@ RUN apt-get update
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# COPY ./initials/initial.sh /docker-entrypoint.d/initial.sh
+COPY ./initials/initial.sh /docker-entrypoint.d/initial.sh
 
-# RUN chmod +x /docker-entrypoint.d/initial.sh
+RUN chmod +x /docker-entrypoint.d/initial.sh
 
 RUN mkdir build
 
@@ -23,12 +23,8 @@ COPY ./alembic.ini .
 
 RUN pip install -r requirements.txt
 
-# RUN chmod +x ./initials/initial.sh
+RUN chmod +x ./initials/initial.sh
 
-CMD ["/bin/bash", "-c", "echo python initials/db_starter.py;echo alembic upgrade heads;echo python initials/initial_data.py;echo sanic app.main:app --host 0.0.0.0 --port 8000"]
-
-# CMD ["bash", "./initials/initial.sh"]
+CMD ["/bin/bash", "-c", "./initials/initial.sh"]
 
 ENV PYTHONPATH=/build
-
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
