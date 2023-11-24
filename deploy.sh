@@ -11,13 +11,13 @@ export PYTHONPATH=$PWD
 # # Initialize database
 # python initials/db_starter.py
 
-# # Run migrations
-# alembic upgrade heads
+# Run migrations
+alembic upgrade heads
 
-# # Create initial data
-# python initials/initial_data.py
+# Create initial data
+python initials/initial_data.py
 if [ -f .env ]; then
     source .env
 fi
 
-uvicorn app.main:app --host=0.0.0.0 --port=$PORT
+sanic app.main:app --host 0.0.0.0 --port $PORT
