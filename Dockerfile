@@ -17,6 +17,7 @@ WORKDIR /build
 COPY ./app ./app
 COPY ./initials ./initials
 COPY ./requirements.txt .
+COPY ./deploy.sh .
 COPY ./alembic.ini .
 
 # We copy our app folder to the /build
@@ -24,6 +25,7 @@ COPY ./alembic.ini .
 RUN pip install -r requirements.txt
 
 RUN chmod +x ./initials/initial.sh
+RUN chmod +x ./deploy.sh
 
 CMD ["bash", "./initials/initial.sh"]
 
