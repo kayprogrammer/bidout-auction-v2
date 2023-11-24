@@ -19,5 +19,3 @@ python initials/initial_data.py
 if [ -f .env ]; then
     source .env
 fi
-
-sanic app.main:app --host 0.0.0.0 --port $PORT
