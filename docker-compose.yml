@@ -21,7 +21,7 @@ services:
     restart: always
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-Dev
     volumes:
       - .:/build
     ports:
