@@ -1,32 +1,46 @@
 from typing import Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 
-from app.db.managers.base import BaseManager
+from .base import BaseManager
 from app.db.models.general import SiteDetail, Subscriber, Review
 
 
 class SiteDetailManager(BaseManager[SiteDetail]):
-    def get(self, db: Session) -> Optional[SiteDetail]:
-        sitedetail = db.query(self.model).first()
+    async def get(self, db: AsyncSession) -> Optional[SiteDetail]:
+        sitedetail = (await db.execute(select(self.model))).scalar_one_or_none()
+
         if not sitedetail:
-            sitedetail = self.create(db, {})
+            sitedetail = await self.create(db, {})
         return sitedetail
 
 
 class SubscriberManager(BaseManager[Subscriber]):
-    def get_by_email(self, db: Session, email: str) -> Optional[Subscriber]:
-        subscriber = db.query(self.model).filter_by(email=email).first()
+    async def get_by_email(self, db: AsyncSession, email: str) -> Optional[Subscriber]:
+        subscriber = (
+            await db.execute(select(self.model).where(self.model.email == email))
+        ).scalar_one_or_none()
         return subscriber
 
 
 class ReviewManager(BaseManager[Review]):
-    def get_active(self, db: Session) -> Optional[Review]:
-        reviews = db.query(self.model).filter_by(show=True).all()
+    async def get_active(self, db: AsyncSession) -> Optional[Review]:
+        reviews = (
+            (await db.execute(select(self.model).where(self.model.show == True)))
+            .scalars()
+            .all()
+        )
         return reviews
 
-    def get_count(self, db: Session) -> Optional[int]:
-        reviews_count = db.query(self.model).filter_by(show=True).count()
-        return reviews_count
+    async def get_count(self, db: AsyncSession) -> Optional[int]:
+        count = (
+            await db.execute(
+                select(func.count()).select_from(
+                    select(self.model).where(self.model.show == True)
+                )
+            )
+        ).scalar_one()
+        return count
 
 
 sitedetail_manager = SiteDetailManager(SiteDetail)

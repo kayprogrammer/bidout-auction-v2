@@ -1,8 +1,7 @@
-from sanic import Sanic
+from sanic import Sanic, Request
 from sanic.response import json
 from sanic_ext import Config, openapi
-
-from app.core.database import inject_db_session, close_db_session
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 from app.api.routes.auth import auth_router
 from app.api.routes.listings import listings_router
 from app.api.routes.auctioneer import auctioneer_router
@@ -46,12 +45,27 @@ app.ext.openapi.add_security_scheme(
     scheme="bearer",
     bearer_format="JWT",
 )
+
+
+# ---------------------------
+# SETUP DATABASE
+# ---------------------
+def get_db(request: Request):
+    return request.app.ctx.db_conn
+
+
+@app.before_server_start
+async def setup_db(app, _):
+    engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URL)
+    SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+    app.ctx.db_conn = SessionLocal()
+    app.ext.add_dependency(AsyncSession, get_db)
+
+
 # --------------------------
 # REGISTER MIDDLEWARES
 app.register_middleware(add_cors_headers, "response", priority=99)
-app.register_middleware(inject_db_session, "request")
-app.register_middleware(close_db_session, "response")
-app.register_middleware(inject_current_user, "request")
+# app.register_middleware(inject_current_user, "request")
 
 # EXCEPTION HANDLERS
 app.error_handler.add(Exception, sanic_exceptions_handler)

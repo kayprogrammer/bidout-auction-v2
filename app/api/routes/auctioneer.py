@@ -235,9 +235,9 @@ class ProfileView(HTTPMethodView):
         return CustomResponse.success(message="User updated!", data=data)
 
 
-auctioneer_router.add_route(AuctioneerListingsView.as_view(), "/listings")
-auctioneer_router.add_route(UpdateListingView.as_view(), "/listings/<slug>")
-auctioneer_router.add_route(
-    AuctioneerListingBidsView.as_view(), "/listings/<slug>/bids"
-)
-auctioneer_router.add_route(ProfileView.as_view(), "/")
+# auctioneer_router.add_route(AuctioneerListingsView.as_view(), "/listings")
+# auctioneer_router.add_route(UpdateListingView.as_view(), "/listings/<slug>")
+# auctioneer_router.add_route(
+#     AuctioneerListingBidsView.as_view(), "/listings/<slug>/bids"
+# )
+# auctioneer_router.add_route(ProfileView.as_view(), "/")

@@ -2,13 +2,13 @@ from sanic_testing.testing import SanicASGITestClient
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.database import Base
 from app.db.managers.accounts import (
     jwt_manager,
     user_manager,
 )
 from app.db.managers.listings import category_manager, listing_manager
 from app.db.managers.base import file_manager
+from app.db.models.base import Base
 
 from app.main import app
 from app.api.utils.tokens import (

@@ -8,7 +8,6 @@ from app.db.managers.accounts import user_manager
 from app.db.managers.base import file_manager
 from app.db.managers.listings import category_manager
 
-from app.core.database import SessionLocal
 from app.api.utils.file_types import ALLOWED_IMAGE_TYPES
 from app.api.utils.file_processors import FileProcessor
 from pytz import UTC

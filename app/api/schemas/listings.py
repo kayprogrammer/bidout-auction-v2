@@ -11,8 +11,6 @@ from app.db.managers.listings import category_manager
 
 from app.api.utils.file_processors import FileProcessor
 
-from app.core.database import SessionLocal
-
 from decimal import Decimal
 from pytz import UTC
 

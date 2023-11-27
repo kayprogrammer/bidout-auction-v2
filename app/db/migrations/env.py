@@ -1,6 +1,6 @@
+from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
 from logging.config import fileConfig
-from app.core.database import Base, engine
 from app.db.models.base import *
 from app.db.models.accounts import *
 from app.db.models.listings import *
@@ -27,7 +27,7 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    connectable = engine
+    connectable = create_async_engine(settings.SQLALCHEMY_DATABASE_URL)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
 

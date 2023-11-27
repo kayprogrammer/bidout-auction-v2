@@ -295,9 +295,9 @@ class BidsView(HTTPMethodView):
         )
 
 
-listings_router.add_route(ListingsView.as_view(), "/")
-listings_router.add_route(ListingDetailView.as_view(), "/detail/<slug>")
-listings_router.add_route(ListingsByWatchListView.as_view(), "/watchlist")
-listings_router.add_route(CategoryListView.as_view(), "/categories")
-listings_router.add_route(ListingsByCategoryView.as_view(), "/categories/<slug>")
-listings_router.add_route(BidsView.as_view(), "/detail/<slug>/bids")
+# listings_router.add_route(ListingsView.as_view(), "/")
+# listings_router.add_route(ListingDetailView.as_view(), "/detail/<slug>")
+# listings_router.add_route(ListingsByWatchListView.as_view(), "/watchlist")
+# listings_router.add_route(CategoryListView.as_view(), "/categories")
+# listings_router.add_route(ListingsByCategoryView.as_view(), "/categories/<slug>")
+# listings_router.add_route(BidsView.as_view(), "/detail/<slug>/bids")

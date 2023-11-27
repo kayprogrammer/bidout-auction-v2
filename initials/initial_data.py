@@ -6,7 +6,6 @@ sys.path.append(os.path.abspath("./"))  # To single-handedly execute this script
 import logging
 
 from initials.data_script import CreateData
-from app.core.database import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

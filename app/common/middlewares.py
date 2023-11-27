@@ -1,5 +1,5 @@
 from app.api.utils.tokens import decodeJWT
-from app.db.managers.base import guest_user_manager
+from app.db.managers.base import guestuser_manager
 from app.core.config import settings
 
 
@@ -28,5 +28,5 @@ def inject_current_user(request):
     else:
         # Let the user context object contain a guest user model object
         guestuser_id = request.headers.get("guestuserid", None)
-        guestuser = guest_user_manager.get_or_create(db, guestuser_id)
+        guestuser = guestuser_manager.get_or_create(db, guestuser_id)
         request.ctx.user = guestuser

@@ -39,7 +39,7 @@ class RegisterView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
 
         # Check for existing user
         existing_user = user_manager.get_by_email(db, data["email"])
@@ -74,7 +74,7 @@ class VerifyEmailView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
         user_by_email = user_manager.get_by_email(db, data["email"])
 
         if not user_by_email:
@@ -107,7 +107,7 @@ class ResendVerificationEmailView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
         user_by_email = user_manager.get_by_email(db, data["email"])
         if not user_by_email:
             return CustomResponse.error("Incorrect Email", status_code=404)
@@ -131,7 +131,7 @@ class SendPasswordResetOtpView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
         user_by_email = user_manager.get_by_email(db, data["email"])
         if not user_by_email:
             return CustomResponse.error("Incorrect Email", status_code=404)
@@ -153,7 +153,7 @@ class SetNewPasswordView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
         email = data["email"]
         otp_code = data["otp"]
         password = data["password"]
@@ -238,7 +238,7 @@ class RefreshTokensView(HTTPMethodView):
     )
     async def post(self, request, **kwargs):
         db = request.ctx.db
-        data = kwargs.get("data")
+        data = kwargs["data"]
         token = data["refresh"]
         jwt = jwt_manager.get_by_refresh(db, token)
         if not jwt:
@@ -279,13 +279,13 @@ class LogoutView(HTTPMethodView):
         return CustomResponse.success(message="Logout successful")
 
 
-auth_router.add_route(RegisterView.as_view(), "/register")
-auth_router.add_route(VerifyEmailView.as_view(), "/verify-email")
-auth_router.add_route(
-    ResendVerificationEmailView.as_view(), "/resend-verification-email"
-)
-auth_router.add_route(SendPasswordResetOtpView.as_view(), "/request-password-reset-otp")
-auth_router.add_route(SetNewPasswordView.as_view(), "/set-new-password")
-auth_router.add_route(LoginView.as_view(), "/login")
-auth_router.add_route(RefreshTokensView.as_view(), "/refresh")
-auth_router.add_route(LogoutView.as_view(), "/logout")
+# auth_router.add_route(RegisterView.as_view(), "/register")
+# auth_router.add_route(VerifyEmailView.as_view(), "/verify-email")
+# auth_router.add_route(
+#     ResendVerificationEmailView.as_view(), "/resend-verification-email"
+# )
+# auth_router.add_route(SendPasswordResetOtpView.as_view(), "/request-password-reset-otp")
+# auth_router.add_route(SetNewPasswordView.as_view(), "/set-new-password")
+# auth_router.add_route(LoginView.as_view(), "/login")
+# auth_router.add_route(RefreshTokensView.as_view(), "/refresh")
+# auth_router.add_route(LogoutView.as_view(), "/logout")

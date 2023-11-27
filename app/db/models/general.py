@@ -4,7 +4,7 @@ from sqlalchemy import (
     ForeignKey,
     String,
 )
-
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from .base import BaseModel
 
@@ -45,6 +45,7 @@ class Review(BaseModel):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
     )
+    reviewer = relationship("User", lazy="joined")
     show = Column(Boolean, default=False)
     text = Column(String(200))
 
