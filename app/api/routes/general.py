@@ -1,7 +1,6 @@
 from sanic import Blueprint
 from sanic.views import HTTPMethodView
 from sanic_ext import openapi
-from sanic_ext.extensions.openapi.definitions import RequestBody
 from app.api.schemas.general import (
     SiteDetailDataSchema,
     SiteDetailResponseSchema,
@@ -10,6 +9,7 @@ from app.api.schemas.general import (
     ReviewsDataSchema,
     ReviewsResponseSchema,
 )
+from app.api.utils.responses import ReqBody, ResBody
 from app.common.responses import CustomResponse
 from app.db.managers.general import (
     sitedetail_manager,
@@ -27,7 +27,7 @@ class SiteDetailView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve site details",
         description="This endpoint retrieves few details of the site/application",
-        response={"application/json": SiteDetailResponseSchema},
+        response=ResBody(SiteDetailResponseSchema),
     )
     async def get(self, request, db: AsyncSession, **kwargs):
         sitedetail = await sitedetail_manager.get(db)
@@ -37,10 +37,10 @@ class SiteDetailView(HTTPMethodView):
 
 class SubscriberCreateView(HTTPMethodView):
     @openapi.definition(
-        body=RequestBody({"application/json": SubscriberSchema}, required=True),
+        body=ReqBody(SubscriberSchema),
         summary="Add a subscriber",
         description="This endpoint creates a subscriber in our application",
-        response={"application/json": SubscriberResponseSchema},
+        response=ResBody(SubscriberResponseSchema),
     )
     @validate_request(SubscriberSchema)
     async def post(self, request, db: AsyncSession, **kwargs):
@@ -59,7 +59,7 @@ class ReviewsView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve site reviews",
         description="This endpoint retrieves a few reviews of the application",
-        response={"application/json": ReviewsResponseSchema},
+        response=ResBody(ReviewsResponseSchema),
     )
     async def get(self, request, db: AsyncSession, **kwargs):
         reviews = await review_manager.get_active(db)

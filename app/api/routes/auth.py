@@ -15,6 +15,7 @@ from app.api.schemas.base import ResponseSchema
 from app.api.utils.responses import ReqBody, ResBody
 from app.common.responses import CustomResponse
 from app.db.managers.accounts import user_manager, otp_manager, jwt_manager
+from app.db.managers.base import guestuser_manager
 from app.db.managers.listings import watchlist_manager
 
 from app.api.utils.emails import send_email
@@ -24,8 +25,8 @@ from app.api.utils.tokens import (
     create_refresh_token,
     verify_refresh_token,
 )
-from app.api.utils.decorators import authorized
 from app.api.utils.decorators import validate_request
+from app.db.models.base import GuestUser
 
 auth_router = Blueprint("Auth", url_prefix="/api/v2/auth")
 
@@ -205,16 +206,19 @@ class LoginView(HTTPMethodView):
         )
 
         # Move all guest user watchlists to the authenticated user watchlists
-        session_key = client.id
         guest_user_watchlists = await watchlist_manager.get_by_session_key(
-            db, session_key, user.id
+            db, client.id if client else None, user.id
         )
         if len(guest_user_watchlists) > 0:
             data_to_create = [
-                {"user_id": user.id, "listing_id": watchlist.listing_id}.copy()
-                for watchlist in guest_user_watchlists
+                {"user_id": user.id, "listing_id": listing_id}.copy()
+                for listing_id in guest_user_watchlists
             ]
             await watchlist_manager.bulk_create(db, data_to_create)
+
+        if isinstance(client, GuestUser):
+            # Delete client (Almost like clearing sessions)
+            await guestuser_manager.delete(db, client)
 
         response = CustomResponse.success(
             message="Login successful",

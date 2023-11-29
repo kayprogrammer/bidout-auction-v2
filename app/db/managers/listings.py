@@ -1,10 +1,10 @@
 from typing import Optional, List, Any
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.api.utils.tokens import get_random
 
 from app.db.managers.base import BaseManager
 from app.db.models.listings import Category, Listing, WatchList, Bid
-from app.api.utils.tokens import get_random
 
 from uuid import UUID
 from slugify import slugify

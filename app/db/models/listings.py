@@ -39,6 +39,8 @@ class Listing(BaseModel):
     auctioneer_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
     )
+    auctioneer = relationship("User", lazy="joined")
+
     name = Column(String(70))
     slug = Column(String(), unique=True)
     desc = Column(Text())
@@ -47,8 +49,11 @@ class Listing(BaseModel):
         ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
     )
+    category = relationship("Category", lazy="joined")
 
     price = Column(Numeric(precision=10, scale=2))
+    highest_bid = Column(Numeric(precision=10, scale=2), default=0.00)
+    bids_count = Column(Integer, default=0)
     closing_date = Column(DateTime, nullable=True)
     active = Column(Boolean, default=True)
 
@@ -57,28 +62,10 @@ class Listing(BaseModel):
         ForeignKey("files.id", ondelete="SET NULL"),
         unique=True,
     )
-    image = relationship(
-        "File", foreign_keys=[image_id], back_populates="listing_image"
-    )
-
-    listing_bids = relationship(
-        "Bid",
-        foreign_keys="Bid.listing_id",
-        back_populates="listing",
-        lazy="dynamic",
-    )
-    listing_watchlists = relationship(
-        "WatchList",
-        foreign_keys="WatchList.listing_id",
-        back_populates="listing",
-    )
+    image = relationship("File", lazy="joined")
 
     def __repr__(self):
         return self.name
-
-    @property
-    def bids_count(self):
-        return self.listing_bids.count()
 
     @property
     def time_left_seconds(self):
@@ -92,35 +79,16 @@ class Listing(BaseModel):
             return 0
         return self.time_left_seconds
 
-    @property
-    def highest_bid(self):
-        highest_bid = 0.00
-        related_bids = self.listing_bids
-        if related_bids:
-            highest_bid = (
-                related_bids.session.query(func.max(Bid.amount))
-                .filter_by(listing_id=self.id)
-                .scalar()
-            )
-            highest_bid = related_bids.filter_by(amount=highest_bid).first()
-            if highest_bid:
-                highest_bid = highest_bid.amount
-            else:
-                highest_bid = 0.00
-
-        return highest_bid
-
 
 class Bid(BaseModel):
     __tablename__ = "bids"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    user = relationship("User", lazy="joined")
     listing_id = Column(
         UUID(as_uuid=True), ForeignKey("listings.id", ondelete="CASCADE")
     )
-    listing = relationship(
-        "Listing", foreign_keys=[listing_id], back_populates="listing_bids"
-    )
+    listing = relationship("Listing", lazy="joined")
     amount = Column(Numeric(precision=10, scale=2))
 
     def __repr__(self):
@@ -136,18 +104,12 @@ class WatchList(BaseModel):
     __tablename__ = "watchlists"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    user = relationship(
-        "User", foreign_keys=[user_id], back_populates="user_watchlists"
-    )
+    user = relationship("User", lazy="joined")
 
     listing_id = Column(
         UUID(as_uuid=True), ForeignKey("listings.id", ondelete="CASCADE")
     )
-    listing = relationship(
-        "Listing",
-        foreign_keys=[listing_id],
-        back_populates="listing_watchlists",
-    )
+    listing = relationship("Listing", lazy="joined")
 
     session_key = Column(
         UUID(as_uuid=True), ForeignKey("guestusers.id", ondelete="CASCADE")

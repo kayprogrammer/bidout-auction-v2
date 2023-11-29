@@ -52,10 +52,6 @@ class User(BaseModel):
         uselist=False,
     )
 
-    user_watchlists = relationship(
-        "WatchList", foreign_keys="WatchList.user_id", back_populates="user"
-    )
-
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"

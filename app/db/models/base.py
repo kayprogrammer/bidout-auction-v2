@@ -25,12 +25,6 @@ class File(BaseModel):
     user_avatar = relationship(
         "User", foreign_keys="User.avatar_id", back_populates="avatar", uselist=False
     )
-    listing_image = relationship(
-        "Listing",
-        foreign_keys="Listing.image_id",
-        back_populates="image",
-        uselist=False,
-    )
 
 
 class GuestUser(BaseModel):

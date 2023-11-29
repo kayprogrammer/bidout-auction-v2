@@ -5,30 +5,32 @@ from app.db.managers.listings import category_manager, listing_manager
 from app.db.managers.base import file_manager
 from app.api.utils.file_processors import FileProcessor
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from pathlib import Path
 from .mappings import listing_mappings, category_mappings, file_mappings
 from datetime import datetime, timedelta
 from slugify import slugify
-import os
-import random
+import os, random
 
 CURRENT_DIR = Path(__file__).resolve().parent
 test_images_directory = os.path.join(CURRENT_DIR, "images")
 
 
 class CreateData(object):
-    def __init__(self, db: Session) -> None:
-        self.create_superuser(db)
-        auctioneer = self.create_auctioneer(db)
-        reviewer = self.create_reviewer(db)
-        self.create_sitedetail(db)
-        self.create_reviews(db, reviewer.id)
-        category_ids = self.create_categories(db)
-        self.create_listings(db, category_ids, auctioneer.id)
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
 
-    def create_superuser(self, db) -> None:
-        superuser = user_manager.get_by_email(db, settings.FIRST_SUPERUSER_EMAIL)
+    async def initialize(self) -> None:
+        await self.create_superuser(self.db)
+        auctioneer = await self.create_auctioneer(self.db)
+        reviewer = await self.create_reviewer(self.db)
+        await self.create_sitedetail(self.db)
+        await self.create_reviews(self.db, reviewer.id)
+        category_ids = await self.create_categories(self.db)
+        await self.create_listings(self.db, category_ids, auctioneer.id)
+
+    async def create_superuser(self, db: AsyncSession) -> None:
+        superuser = await user_manager.get_by_email(db, settings.FIRST_SUPERUSER_EMAIL)
         user_dict = {
             "first_name": "Test",
             "last_name": "Admin",
@@ -39,11 +41,13 @@ class CreateData(object):
             "is_email_verified": True,
         }
         if not superuser:
-            superuser = user_manager.create(db, user_dict)
+            superuser = await user_manager.create(db, user_dict)
         return superuser
 
-    def create_auctioneer(self, db) -> None:
-        auctioneer = user_manager.get_by_email(db, settings.FIRST_AUCTIONEER_EMAIL)
+    async def create_auctioneer(self, db: AsyncSession) -> None:
+        auctioneer = await user_manager.get_by_email(
+            db, settings.FIRST_AUCTIONEER_EMAIL
+        )
         user_dict = {
             "first_name": "Test",
             "last_name": "Auctioneer",
@@ -52,11 +56,11 @@ class CreateData(object):
             "is_email_verified": True,
         }
         if not auctioneer:
-            auctioneer = user_manager.create(db, user_dict)
+            auctioneer = await user_manager.create(db, user_dict)
         return auctioneer
 
-    def create_reviewer(self, db) -> None:
-        reviewer = user_manager.get_by_email(db, settings.FIRST_REVIEWER_EMAIL)
+    async def create_reviewer(self, db: AsyncSession) -> None:
+        reviewer = await user_manager.get_by_email(db, settings.FIRST_REVIEWER_EMAIL)
         user_dict = {
             "first_name": "Test",
             "last_name": "Reviewer",
@@ -65,19 +69,19 @@ class CreateData(object):
             "is_email_verified": True,
         }
         if not reviewer:
-            reviewer = user_manager.create(db, user_dict)
+            reviewer = await user_manager.create(db, user_dict)
         return reviewer
 
-    def create_sitedetail(self, db) -> None:
-        sitedetail = sitedetail_manager.get(db)
+    async def create_sitedetail(self, db: AsyncSession) -> None:
+        sitedetail = await sitedetail_manager.get(db)
         if not sitedetail:
-            sitedetail = sitedetail_manager.create(db, {})
+            sitedetail = await sitedetail_manager.create(db, {})
         return sitedetail
 
-    def create_reviews(self, db, reviewer_id) -> None:
-        reviews_count = review_manager.get_count(db)
+    async def create_reviews(self, db, reviewer_id) -> None:
+        reviews_count = await review_manager.get_count(db)
         if reviews_count < 1:
-            review_manager.bulk_create(db, self.review_mappings(reviewer_id))
+            await review_manager.bulk_create(db, self.review_mappings(reviewer_id))
         pass
 
     def review_mappings(self, reviewer_id):
@@ -99,16 +103,16 @@ class CreateData(object):
             },
         ]
 
-    def create_categories(self, db) -> None:
-        category_ids = category_manager.get_all_ids(db)
+    async def create_categories(self, db: AsyncSession) -> None:
+        category_ids = await category_manager.get_all_ids(db)
         if len(category_ids) < 1:
-            category_ids = category_manager.bulk_create(db, category_mappings)
+            category_ids = await category_manager.bulk_create(db, category_mappings)
         return category_ids
 
-    def create_listings(self, db, category_ids, auctioneer_id) -> None:
-        listings = listing_manager.get_all(db)
+    async def create_listings(self, db, category_ids, auctioneer_id) -> None:
+        listings = await listing_manager.get_all(db)
         if len(listings) < 1:
-            image_ids = file_manager.bulk_create(db, file_mappings)
+            image_ids = await file_manager.bulk_create(db, file_mappings)
             updated_listing_mappings = []
             for idx, mapping in enumerate(listing_mappings):
                 mapping.update(
@@ -122,7 +126,7 @@ class CreateData(object):
                     }
                 )
                 updated_listing_mappings.append(mapping)
-            listing_manager.bulk_create(db, updated_listing_mappings)
+            await listing_manager.bulk_create(db, updated_listing_mappings)
 
             # Upload Images
             for idx, image_file in enumerate(os.listdir(test_images_directory)):
