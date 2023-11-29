@@ -3,6 +3,7 @@ from sanic.response import json
 from sanic_ext import Config, openapi
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 from app.api.routes.auth import auth_router
+from app.api.routes.deps import AuthUser, Client, get_client, get_user
 from app.api.routes.listings import listings_router
 from app.api.routes.auctioneer import auctioneer_router
 from app.api.routes.general import general_router
@@ -12,10 +13,7 @@ from app.common.exception_handlers import (
     sanic_exceptions_handler,
     validation_exception_handler,
 )
-from app.common.middlewares import (
-    add_cors_headers,
-    inject_current_user,
-)
+from app.common.middlewares import add_cors_headers
 from pydantic import ValidationError
 
 from jinja2 import Environment, PackageLoader
@@ -55,17 +53,24 @@ def get_db(request: Request):
 
 
 @app.before_server_start
-async def setup_db(app, _):
+async def add_dependencies(app, _):
+    # Database
     engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URL)
     SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
     app.ctx.db_conn = SessionLocal()
     app.ext.add_dependency(AsyncSession, get_db)
 
+    # Client
+    app.ext.add_dependency(Client, get_client)
+
+    # Auth User
+    app.ext.add_dependency(AuthUser, get_user)
+
 
 # --------------------------
 # REGISTER MIDDLEWARES
+# --------------------------
 app.register_middleware(add_cors_headers, "response", priority=99)
-# app.register_middleware(inject_current_user, "request")
 
 # EXCEPTION HANDLERS
 app.error_handler.add(Exception, sanic_exceptions_handler)
@@ -84,6 +89,9 @@ app.ctx.template_env = env
 app.config.SECRET = settings.SECRET_KEY
 
 
+# -------------------------
+# REGISTERING DEPENDENCIES
+# -------------------------
 @openapi.definition(
     tag="HealthCheck",
     summary="API Health Check",

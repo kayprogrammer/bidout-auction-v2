@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.db.managers.accounts import otp_manager
 
 
-def sort_email(db, user, type):
+async def sort_email(db, user, type):
     template = "welcome.html"
     subject = "Account verified"
 
@@ -15,13 +15,13 @@ def sort_email(db, user, type):
     if type == "activate":
         template = "email-activation.html"
         subject = "Activate your account"
-        otp = otp_manager.create(db, {"user_id": user.id}).code
+        otp = (await otp_manager.create(db, {"user_id": user.id})).code
         data = {"template": template, "subject": subject, "otp": otp}
 
     elif type == "reset":
         template = "password-reset.html"
         subject = "Reset your password"
-        otp = otp_manager.create(db, {"user_id": user.id}).code
+        otp = (await otp_manager.create(db, {"user_id": user.id})).code
         data = {"template": template, "subject": subject, "otp": otp}
 
     elif type == "reset-success":
@@ -32,9 +32,9 @@ def sort_email(db, user, type):
     return data
 
 
-def send_email(request, db, user, type):
+async def send_email(request, db, user, type):
     template_env = request.app.ctx.template_env
-    email_data = sort_email(db, user, type)
+    email_data = await sort_email(db, user, type)
     template = email_data["template"]
     subject = email_data["subject"]
 

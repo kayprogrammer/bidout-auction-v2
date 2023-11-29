@@ -47,7 +47,7 @@ def verify_refresh_token(token):
 
 
 # deocde access token from header
-def decodeJWT(db, token):
+async def decodeJWT(db, token):
     if not token:
         return None
 
@@ -57,9 +57,9 @@ def decodeJWT(db, token):
         return None
 
     if decoded:
-        user = user_manager.get_by_id(db, decoded.get("user_id"))
+        user = await user_manager.get_by_id(db, decoded["user_id"])
         if user:
-            jwt_obj = jwt_manager.get_by_user_id(db, user.id)
+            jwt_obj = await jwt_manager.get_by_user_id(db, user.id)
             if (
                 not jwt_obj
             ):  # to confirm the validity of the token (it's existence in our database)

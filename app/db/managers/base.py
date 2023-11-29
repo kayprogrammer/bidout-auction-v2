@@ -93,7 +93,13 @@ class FileManager(BaseManager[File]):
     pass
 
 
-class GuestUserManager(BaseManager[File]):
+class GuestUserManager(BaseManager[GuestUser]):
+    async def get_or_create(self, db: AsyncSession, id):
+        guestuser = await self.get_by_id(db, id)
+        if not guestuser:
+            guestuser = await self.create(db)
+        return guestuser
+
     pass
 
 
