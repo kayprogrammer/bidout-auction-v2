@@ -52,7 +52,7 @@ async def decodeJWT(db, token):
         return None
 
     try:
-        decoded = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=[ALGORITHM])
+        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
     except:
         return None
 

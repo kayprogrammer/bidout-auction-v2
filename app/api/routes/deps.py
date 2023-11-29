@@ -18,7 +18,7 @@ class AuthUser:
 async def get_client(request: Request, db: AsyncSession) -> User | GuestUser:
     token = request.headers.get("Authorization", None)  # can also use request.token
     if token:
-        is_authorized = await decodeJWT(db, token)
+        is_authorized = await decodeJWT(db, token[7:])
         if not is_authorized:
             raise SanicException(
                 message="Auth Token is invalid or expired", status_code=401
@@ -30,7 +30,7 @@ async def get_client(request: Request, db: AsyncSession) -> User | GuestUser:
 
 
 async def get_user(request: Request, db: AsyncSession) -> User:
-    token = request.headers.get("Authorization", None)  # can also use request.token
+    token = request.token
     if not token:
         raise SanicException(message="Unauthorized user", status_code=401)
     user = await decodeJWT(db, token)
