@@ -38,3 +38,5 @@ tests:
 
 requirements:
 	pip install -r requirements.txt
+
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQzODA3NzIsInVzZXJfaWQiOiIzN2Y0YjU2YS02MTdiLTQwMTUtYmEzMi02YzA4OTgzYjg5MjAifQ.pG_i3EH2H7rB_4DmyEqNoSK9ljsNGWRQXp7mQjRkme0

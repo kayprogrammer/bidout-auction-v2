@@ -5,8 +5,6 @@ from datetime import datetime
 from uuid import UUID
 from .base import ResponseSchema
 
-from app.db.managers.accounts import user_manager
-
 from app.api.utils.file_processors import FileProcessor
 
 from decimal import Decimal
