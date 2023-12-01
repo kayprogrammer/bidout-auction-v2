@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from pydantic import BaseModel, validator, Field, StrictStr
+from pydantic import BaseModel, HttpUrl, validator, Field, StrictStr
 from datetime import datetime
 from uuid import UUID
 from .base import ResponseSchema
@@ -83,18 +83,16 @@ class UpdateListingSchema(BaseModel):
 
 class CreateListingResponseDataSchema(BaseModel):
     name: str
-    auctioneer_id: UUID = Field(..., example="Ignore this")
-    auctioneer: Optional[dict] = Field(
+    auctioneer: dict = Field(
         None, example={"name": "John Doe", "avatar": "https://image.url"}
     )
 
     slug: str
     desc: str
 
-    category_id: Optional[UUID] = Field(..., example="Ignore this")
     category: Optional[str]
 
-    price: int
+    price: Decimal = Field(..., example=1000.00, decimal_places=2)
     closing_date: Any
     active: bool
     bids_count: int
@@ -103,47 +101,30 @@ class CreateListingResponseDataSchema(BaseModel):
 
     @validator("file_upload_data", always=True)
     def assemble_file_upload_data(cls, v, values):
-        db = SessionLocal()
         image_id = values.get("image_id")
-        file = file_manager.get_by_id(db, image_id)
-        if file:
-            db.close()
+        if image_id:
             values.pop("image_id", None)
             return FileProcessor.generate_file_signature(
                 key=image_id,
                 folder="listings",
             )
-        db.close()
         values.pop("image_id", None)
         return None
 
-    @validator("auctioneer", always=True)
-    def show_auctioneer(cls, v, values):
-        db = SessionLocal()
-        auctioneer_id = values.get("auctioneer_id")
-        auctioneer = user_manager.get_by_id(db, auctioneer_id)
-        values.pop("auctioneer_id", None)
-        if auctioneer:
-            avatar = None
-            if auctioneer.avatar_id:
-                avatar = FileProcessor.generate_file_url(
-                    key=auctioneer.avatar_id,
-                    folder="avatars",
-                    content_type=auctioneer.avatar.resource_type,
-                )
-            db.close()
-            return {"name": auctioneer.full_name(), "avatar": avatar}
-        db.close()
-        return v
+    @validator("auctioneer", pre=True)
+    def show_auctioneer(cls, v):
+        avatar = None
+        if v.avatar_id:
+            avatar = FileProcessor.generate_file_url(
+                key=v.avatar_id,
+                folder="avatars",
+                content_type=v.avatar.resource_type,
+            )
+        return {"name": v.full_name, "avatar": avatar}
 
-    @validator("category", always=True)
-    def show_category(cls, v, values):
-        db = SessionLocal()
-        category_id = values.get("category_id")
-        category = category_manager.get_by_id(db, category_id)
-        values.pop("category_id", None)
-        db.close()
-        return category.name if category else "Other"
+    @validator("category", pre=True)
+    def show_category(cls, v):
+        return v.name if v else "Other"
 
     class Config:
         orm_mode = True
@@ -190,17 +171,13 @@ class UpdateProfileResponseDataSchema(BaseModel):
 
     @validator("file_upload_data", always=True)
     def assemble_file_upload_data(cls, v, values):
-        db = SessionLocal()
         avatar_id = values.get("avatar_id")
-        file = file_manager.get_by_id(db, avatar_id)
-        if file:
-            db.close()
+        if avatar_id:
             values.pop("avatar_id", None)
             return FileProcessor.generate_file_signature(
                 key=avatar_id,
                 folder="avatars",
             )
-        db.close()
         values.pop("avatar_id", None)
         return None
 
@@ -216,24 +193,14 @@ class UpdateProfileResponseSchema(ResponseSchema):
 class ProfileDataSchema(BaseModel):
     first_name: str
     last_name: str
-    avatar_id: Optional[UUID] = Field(
-        None, example="Ignore this"
-    )  # This must be above avatar field
     avatar: Optional[Any]
 
-    @validator("avatar", always=True)
-    def assemble_image_url(cls, v, values):
-        db = SessionLocal()
-        avatar_id = values.get("avatar_id")
-        file = file_manager.get_by_id(db, avatar_id)
-        if file:
-            db.close()
-            values.pop("avatar_id", None)
+    @validator("avatar", pre=True)
+    def assemble_image_url(cls, v):
+        if v:
             return FileProcessor.generate_file_url(
-                key=avatar_id, folder="avatars", content_type=file.resource_type
+                key=v.id, folder="avatars", content_type=v.resource_type
             )
-        db.close()
-        values.pop("avatar_id", None)
         return None
 
     class Config:

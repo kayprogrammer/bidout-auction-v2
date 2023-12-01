@@ -57,12 +57,7 @@ async def decodeJWT(db, token):
         return None
 
     if decoded:
-        user = await user_manager.get_by_id(db, decoded["user_id"])
-        if user:
-            jwt_obj = await jwt_manager.get_by_user_id(db, user.id)
-            if (
-                not jwt_obj
-            ):  # to confirm the validity of the token (it's existence in our database)
-                return None
-            return user
-        return None
+        jwt_obj = await jwt_manager.get_by_user_id(db, decoded["user_id"])
+        if not jwt_obj:
+            return None
+        return jwt_obj.user

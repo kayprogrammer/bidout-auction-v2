@@ -29,6 +29,8 @@ app.extend(
         oas_url_prefix="/",
     )
 )
+app.config.SWAGGER_UI_CONFIGURATION = {}
+
 app.ext.openapi.describe(
     f"{settings.PROJECT_NAME} API",
     version="2",
@@ -97,6 +99,6 @@ app.config.SECRET = settings.SECRET_KEY
     summary="API Health Check",
     description="This endpoint checks the health of the API",
 )
-@app.route("/ping", methods=["GET", "OPTIONS"], name="Healthcheck")
+@app.route("/ping", methods=["GET"], name="Healthcheck")
 async def healthcheck(request):
     return json({"success": "pong!"})

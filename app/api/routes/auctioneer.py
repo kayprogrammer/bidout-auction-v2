@@ -188,9 +188,7 @@ class ProfileView(HTTPMethodView):
         response=ResBody(ProfileResponseSchema),
         secured="token",
     )
-    async def get(self, request, user: AuthUser, **kwargs):
-        data = kwargs.get("data")
-        print(user)
+    async def get(self, request, user: AuthUser):
         data = ProfileDataSchema.from_orm(user).dict()
         return CustomResponse.success(message="User details fetched!", data=data)
 
@@ -203,7 +201,7 @@ class ProfileView(HTTPMethodView):
     )
     @validate_request(UpdateProfileSchema)
     async def put(self, request, db: AsyncSession, user: AuthUser, **kwargs):
-        data = kwargs.get("data")
+        data = kwargs["data"]
 
         file_type = data.get("file_type")
         if file_type:

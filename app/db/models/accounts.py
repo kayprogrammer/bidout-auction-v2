@@ -32,25 +32,7 @@ class User(BaseModel):
         ForeignKey("files.id", ondelete="CASCADE"),
         unique=True,
     )
-    avatar = relationship(
-        "File", foreign_keys=[avatar_id], back_populates="user_avatar"
-    )
-
-    jwt = relationship(
-        "Jwt",
-        foreign_keys="Jwt.user_id",
-        back_populates="user",
-        lazy=True,
-        uselist=False,
-    )
-
-    otp = relationship(
-        "Otp",
-        foreign_keys="Otp.user_id",
-        back_populates="user",
-        lazy="select",
-        uselist=False,
-    )
+    avatar = relationship("File", lazy="joined")
 
     @property
     def full_name(self):
@@ -71,7 +53,7 @@ class Jwt(BaseModel):
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
     )
-    user = relationship("User", foreign_keys=[user_id], back_populates="jwt")
+    user = relationship("User", lazy="joined")
     access = Column(String())
     refresh = Column(String())
 
@@ -86,7 +68,7 @@ class Otp(BaseModel):
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
     )
-    user = relationship("User", foreign_keys=[user_id], back_populates="otp")
+    user = relationship("User", lazy="joined")
     code = Column(Integer())
 
     def __repr__(self):

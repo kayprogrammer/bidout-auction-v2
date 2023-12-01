@@ -22,9 +22,6 @@ class File(BaseModel):
     __tablename__ = "files"
 
     resource_type = Column(String)
-    user_avatar = relationship(
-        "User", foreign_keys="User.avatar_id", back_populates="avatar", uselist=False
-    )
 
 
 class GuestUser(BaseModel):
