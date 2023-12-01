@@ -68,6 +68,9 @@ async def add_dependencies(app, _):
     # Auth User
     app.ext.add_dependency(AuthUser, get_user)
 
+@app.before_server_stop
+async def close_conection(app, _):
+    await app.ctx.db_conn.close()
 
 # --------------------------
 # REGISTER MIDDLEWARES
