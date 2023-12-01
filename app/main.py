@@ -34,7 +34,7 @@ app.config.SWAGGER_UI_CONFIGURATION = {}
 app.ext.openapi.describe(
     f"{settings.PROJECT_NAME} API",
     version="2",
-    description="This is a simple Auction API",
+    description="This is a simple Auction API built with Sanic",
 )
 app.ext.openapi.add_security_scheme(
     ident="guest", name="GuestUserId", type="apiKey", location="header"
@@ -52,10 +52,6 @@ app.ext.openapi.add_security_scheme(
 # ---------------------
 def get_db(request: Request):
     return request.app.ctx.db_conn
-
-
-from sanic_ext import Extend
-
 
 @app.before_server_start
 async def add_dependencies(app, _):
