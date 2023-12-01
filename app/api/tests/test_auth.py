@@ -1,6 +1,5 @@
 from app.db.managers.accounts import user_manager, jwt_manager, otp_manager
 from app.api.utils.tokens import create_refresh_token
-import pytest
 import mock
 
 BASE_URL_PATH = "/api/v2/auth"
@@ -160,7 +159,6 @@ async def test_refresh_token(client, database, verified_user):
         database,
         {"user_id": str(verified_user.id), "access": "access", "refresh": "refresh"},
     )
-    # database.expunge(jwt_obj)
 
     # Test for invalid refresh token (not found)
     _, response = await client.post(

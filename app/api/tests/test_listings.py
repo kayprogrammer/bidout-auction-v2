@@ -1,13 +1,11 @@
 from app.db.managers.accounts import jwt_manager
 from app.db.managers.listings import category_manager, watchlist_manager, bid_manager
 from app.api.utils.tokens import create_access_token, create_refresh_token
-import pytest
 import mock
 
 BASE_URL_PATH = "/api/v2/listings"
 
 
-@pytest.mark.asyncio
 async def test_retrieve_all_listings(client, create_listing):
     # Verify that all listings are retrieved successfully
     _, response = await client.get(f"{BASE_URL_PATH}")
@@ -20,7 +18,6 @@ async def test_retrieve_all_listings(client, create_listing):
     assert any(isinstance(obj["name"], str) for obj in data)
 
 
-@pytest.mark.asyncio
 async def test_retrieve_particular_listng(client, create_listing):
     listing = create_listing["listing"]
 
@@ -59,11 +56,12 @@ async def test_retrieve_particular_listng(client, create_listing):
     }
 
 
-@pytest.mark.asyncio
 async def test_get_user_watchlists_listng(authorized_client, create_listing, database):
     listing = create_listing["listing"]
     user_id = create_listing["user"].id
-    watchlist_manager.create(database, {"user_id": user_id, "listing_id": listing.id})
+    await watchlist_manager.create(
+        database, {"user_id": user_id, "listing_id": listing.id}
+    )
 
     _, response = await authorized_client.get(f"{BASE_URL_PATH}/watchlist")
     assert response.status_code == 200
@@ -75,7 +73,6 @@ async def test_get_user_watchlists_listng(authorized_client, create_listing, dat
     assert any(isinstance(obj["name"], str) for obj in data)
 
 
-@pytest.mark.asyncio
 async def test_create_or_remove_user_watchlists_listng(
     authorized_client, create_listing
 ):
@@ -99,13 +96,13 @@ async def test_create_or_remove_user_watchlists_listng(
     assert response.json == {
         "status": "success",
         "message": "Listing added to user watchlist",
+        "data": {"guestuser_id": None},
     }
 
 
-@pytest.mark.asyncio
 async def test_retrieve_all_categories(client, database):
     # Create Category
-    category_manager.create(database, {"name": "TestCategory"})
+    await category_manager.create(database, {"name": "TestCategory"})
 
     # Verify that all categories are retrieved successfully
     _, response = await client.get(f"{BASE_URL_PATH}/categories")
@@ -118,7 +115,6 @@ async def test_retrieve_all_categories(client, database):
     assert any(isinstance(obj["name"], str) for obj in data)
 
 
-@pytest.mark.asyncio
 async def test_retrieve_all_listings_by_category(client, create_listing):
     slug = create_listing["category"].slug
 
@@ -138,13 +134,12 @@ async def test_retrieve_all_listings_by_category(client, create_listing):
     assert any(isinstance(obj["name"], str) for obj in data)
 
 
-@pytest.mark.asyncio
 async def test_retrieve_listing_bids(
     client, create_listing, another_verified_user, database
 ):
     listing = create_listing["listing"]
 
-    bid_manager.create(
+    await bid_manager.create(
         database,
         {
             "user_id": another_verified_user.id,
@@ -168,7 +163,6 @@ async def test_retrieve_listing_bids(
     assert isinstance(data["listing"], str)
 
 
-@pytest.mark.asyncio
 async def test_create_bid(
     authorized_client, create_listing, another_verified_user, database
 ):
@@ -197,7 +191,7 @@ async def test_create_bid(
     # Update headers with another user's token
     access = create_access_token({"user_id": str(another_verified_user.id)})
     refresh = create_refresh_token()
-    jwt_manager.create(
+    await jwt_manager.create(
         database,
         {"user_id": another_verified_user.id, "access": access, "refresh": refresh},
     )

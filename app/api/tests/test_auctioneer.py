@@ -3,13 +3,11 @@ from app.db.managers.listings import category_manager, bid_manager
 from app.api.utils.tokens import create_access_token, create_refresh_token
 from datetime import datetime, timedelta
 from pytz import UTC
-import pytest
 import mock
 
 BASE_URL_PATH = "/api/v2/auctioneer"
 
 
-@pytest.mark.asyncio
 async def test_profile_view(authorized_client, verified_user):
     _, response = await authorized_client.get(f"{BASE_URL_PATH}/")
     assert response.status_code == 200
@@ -24,7 +22,6 @@ async def test_profile_view(authorized_client, verified_user):
     }
 
 
-@pytest.mark.asyncio
 async def test_profile_update(authorized_client):
     user_dict = {
         "first_name": "VerifiedUser",
@@ -44,7 +41,6 @@ async def test_profile_update(authorized_client):
     }
 
 
-@pytest.mark.asyncio
 async def test_auctioneer_retrieve_listings(authorized_client, create_listing):
     # Verify that all listings by a particular auctioneer is fetched
     _, response = await authorized_client.get(f"{BASE_URL_PATH}/listings")
@@ -57,10 +53,9 @@ async def test_auctioneer_retrieve_listings(authorized_client, create_listing):
     assert any(isinstance(obj["name"], str) for obj in data)
 
 
-@pytest.mark.asyncio
 async def test_auctioneer_create_listings(authorized_client, database):
     # Create Category
-    category_manager.create(database, {"name": "Test Category"})
+    await category_manager.create(database, {"name": "Test Category"})
 
     listing_dict = {
         "name": "Test Listing",
@@ -108,7 +103,6 @@ async def test_auctioneer_create_listings(authorized_client, database):
     }
 
 
-@pytest.mark.asyncio
 async def test_auctioneer_update_listing(authorized_client, create_listing):
     listing = create_listing["listing"]
 
@@ -170,14 +164,13 @@ async def test_auctioneer_update_listing(authorized_client, create_listing):
     # You can also test for invalid users yourself.....
 
 
-@pytest.mark.asyncio
 async def test_auctioneer_listings_bids(
     authorized_client, create_listing, another_verified_user, database
 ):
     listing = create_listing["listing"]
 
     # Create Bid
-    bid_manager.create(
+    await bid_manager.create(
         database,
         {
             "user_id": another_verified_user.id,
@@ -207,7 +200,7 @@ async def test_auctioneer_listings_bids(
     # Verify that the auctioneer listing bids retrieval failed with invalid owner
     access = create_access_token({"user_id": str(another_verified_user.id)})
     refresh = create_refresh_token()
-    jwt_manager.create(
+    await jwt_manager.create(
         database,
         {"user_id": another_verified_user.id, "access": access, "refresh": refresh},
     )
