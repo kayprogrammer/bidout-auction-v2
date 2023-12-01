@@ -54,6 +54,9 @@ def get_db(request: Request):
     return request.app.ctx.db_conn
 
 
+from sanic_ext import Extend
+
+
 @app.before_server_start
 async def add_dependencies(app, _):
     # Database
@@ -68,9 +71,11 @@ async def add_dependencies(app, _):
     # Auth User
     app.ext.add_dependency(AuthUser, get_user)
 
+
 @app.before_server_stop
 async def close_conection(app, _):
     await app.ctx.db_conn.close()
+
 
 # --------------------------
 # REGISTER MIDDLEWARES

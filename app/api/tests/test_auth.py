@@ -6,7 +6,6 @@ import mock
 BASE_URL_PATH = "/api/v2/auth"
 
 
-@pytest.mark.asyncio
 async def test_register_user(client):
     # Setup
     email = "testregisteruser@example.com"
@@ -40,7 +39,6 @@ async def test_register_user(client):
         }
 
 
-@pytest.mark.asyncio
 async def test_verify_email(client, test_user, database):
     user = test_user
     otp = "111111"
@@ -56,7 +54,7 @@ async def test_verify_email(client, test_user, database):
     }
 
     # Verify that the email verification succeeds with a valid otp
-    otp = otp_manager.create(database, {"user_id": user.id})
+    otp = await otp_manager.create(database, {"user_id": user.id})
     with mock.patch("app.api.utils.emails.send_email") as send_welcome_email_mock:
         _, response = await client.post(
             f"{BASE_URL_PATH}/verify-email",
@@ -69,7 +67,6 @@ async def test_verify_email(client, test_user, database):
         }
 
 
-@pytest.mark.asyncio
 async def test_resend_verification_email(client, test_user, database):
     user_in = {"email": test_user.email}
 
@@ -86,8 +83,12 @@ async def test_resend_verification_email(client, test_user, database):
         }
 
     # Verify that a verified user cannot get a new email
-    test_user = database.merge(test_user)  # To prevent non persistent session error
-    test_user = user_manager.update(database, test_user, {"is_email_verified": True})
+    test_user = await database.merge(
+        test_user
+    )  # To prevent non persistent session error
+    test_user = await user_manager.update(
+        database, test_user, {"is_email_verified": True}
+    )
     with mock.patch("app.api.utils.emails.send_email") as send_verification_email_mock:
         _, response = await client.post(
             f"{BASE_URL_PATH}/resend-verification-email",
@@ -112,7 +113,6 @@ async def test_resend_verification_email(client, test_user, database):
         }
 
 
-@pytest.mark.asyncio
 async def test_login(client, test_user, database):
     # Test for invalid credentials
     _, response = await client.post(
@@ -128,7 +128,7 @@ async def test_login(client, test_user, database):
     # Test for unverified credentials (email)
     _, response = await client.post(
         f"{BASE_URL_PATH}/login",
-        json={"email": test_user.email, "password": "testuser123"},
+        json={"email": test_user.email, "password": "testpassword"},
     )
     assert response.status_code == 401
     assert response.json == {
@@ -137,11 +137,15 @@ async def test_login(client, test_user, database):
     }
 
     # Test for valid credentials and verified email address
-    test_user = database.merge(test_user)  # To prevent non persistent session error
-    test_user = user_manager.update(database, test_user, {"is_email_verified": True})
+    test_user = await database.merge(
+        test_user
+    )  # To prevent non persistent session error
+    test_user = await user_manager.update(
+        database, test_user, {"is_email_verified": True}
+    )
     _, response = await client.post(
         f"{BASE_URL_PATH}/login",
-        json={"email": test_user.email, "password": "testuser123"},
+        json={"email": test_user.email, "password": "testpassword"},
     )
     assert response.status_code == 201
     assert response.json == {
@@ -151,13 +155,12 @@ async def test_login(client, test_user, database):
     }
 
 
-@pytest.mark.asyncio
 async def test_refresh_token(client, database, verified_user):
-    jwt_obj = jwt_manager.create(
+    jwt_obj = await jwt_manager.create(
         database,
         {"user_id": str(verified_user.id), "access": "access", "refresh": "refresh"},
     )
-    database.expunge(jwt_obj)
+    # database.expunge(jwt_obj)
 
     # Test for invalid refresh token (not found)
     _, response = await client.post(
@@ -181,8 +184,8 @@ async def test_refresh_token(client, database, verified_user):
 
     # Test for valid refresh token
     refresh = create_refresh_token()
-    jwt_obj = database.merge(jwt_obj)  # To prevent non persistent session error
-    jwt_obj = jwt_manager.update(database, jwt_obj, {"refresh": refresh})
+    jwt_obj = await database.merge(jwt_obj)  # To prevent non persistent session error
+    jwt_obj = await jwt_manager.update(database, jwt_obj, {"refresh": refresh})
     with mock.patch("app.api.utils.tokens.verify_refresh_token") as mock_verify:
         mock_verify.return_value = True
         _, response = await client.post(
@@ -196,7 +199,6 @@ async def test_refresh_token(client, database, verified_user):
         }
 
 
-@pytest.mark.asyncio
 async def test_get_password_otp(client, verified_user):
     email = verified_user.email
 
@@ -231,7 +233,6 @@ async def test_get_password_otp(client, verified_user):
         }
 
 
-@pytest.mark.asyncio
 async def test_reset_password(client, verified_user, database):
     password_reset_data = {
         "email": verified_user.email,
@@ -267,7 +268,7 @@ async def test_reset_password(client, verified_user, database):
     }
 
     # Verify that password reset succeeds
-    otp = otp_manager.create(database, {"user_id": verified_user.id}).code
+    otp = (await otp_manager.create(database, {"user_id": verified_user.id})).code
     password_reset_data["otp"] = otp
     with mock.patch(
         "app.api.utils.emails.send_email"
@@ -283,7 +284,6 @@ async def test_reset_password(client, verified_user, database):
         }
 
 
-@pytest.mark.asyncio
 async def test_logout(authorized_client):
     # Ensures if authorized user logs out successfully
     _, response = await authorized_client.get(f"{BASE_URL_PATH}/logout")
@@ -301,5 +301,5 @@ async def test_logout(authorized_client):
     assert response.status_code == 401
     assert response.json == {
         "status": "failure",
-        "message": "Unauthorized user",
+        "message": "Auth Token is invalid or expired",
     }
