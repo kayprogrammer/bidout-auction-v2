@@ -1,3 +1,4 @@
+from typing import Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sanic import Request, SanicException
 
@@ -15,7 +16,7 @@ class AuthUser:
     pass
 
 
-async def get_client(request: Request, db: AsyncSession) -> User | GuestUser:
+async def get_client(request: Request, db: AsyncSession) -> Union[User, GuestUser]:
     token = request.headers.get("Authorization", None)  # can also use request.token
     if token:
         is_authorized = await decodeJWT(db, token[7:])
