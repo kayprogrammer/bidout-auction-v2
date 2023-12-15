@@ -92,7 +92,7 @@ class ListingDetailView(HTTPMethodView):
 class ListingsByWatchListView(HTTPMethodView):
     @openapi.definition(
         summary="Retrieve all listings by users watchlist",
-        description="This endpoint retrieves all listings",
+        description="This endpoint retrieves all listings in a user or guest watchlist",
         response=ResBody(ListingsResponseSchema),
     )
     @openapi.secured("token", "guest")
@@ -257,6 +257,7 @@ class BidsView(HTTPMethodView):
         if bid:
             bid = await bid_manager.update(db, bid, {"amount": amount})
         else:
+            bids_count += 1
             bid = await bid_manager.create(
                 db,
                 {"user_id": user.id, "listing_id": listing.id, "amount": amount},
