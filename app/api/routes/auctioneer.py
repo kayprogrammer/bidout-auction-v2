@@ -60,7 +60,7 @@ class AuctioneerListingsView(HTTPMethodView):
     @openapi.definition(
         body=ReqBody(CreateListingSchema),
         summary="Create a listing",
-        description="This endpoint creates a new listing. Note: Use the returned upload_url to upload image to cloudinary",
+        description="This endpoint creates a new listing. Note: Use the returned file_upload_data to upload image to cloudinary",
         response=ResBody(CreateListingResponseSchema, status=201),
         secured="token",
     )
@@ -69,7 +69,7 @@ class AuctioneerListingsView(HTTPMethodView):
         data = kwargs.get("data")
         category = data.get("category")
 
-        if not category == "other":
+        if category != "other":
             category = await category_manager.get_by_slug(db, category)
             if not category:
                 # Return a data validation error
@@ -195,7 +195,7 @@ class ProfileView(HTTPMethodView):
     @openapi.definition(
         body=ReqBody(UpdateProfileSchema),
         summary="Update Profile",
-        description="This endpoint updates an authenticated user's profile. Note: use the returned upload_url to upload avatar to cloudinary",
+        description="This endpoint updates an authenticated user's profile. Note: use the returned file upload data to upload avatar to cloudinary",
         response=ResBody(UpdateProfileResponseSchema),
         secured="token",
     )

@@ -1,12 +1,9 @@
 from typing import Optional, Any
 
-from pydantic import BaseModel, HttpUrl, validator, Field, StrictStr
+from pydantic import BaseModel, validator, Field, StrictStr
 from datetime import datetime
 from uuid import UUID
 from .base import ResponseSchema
-from app.db.managers.accounts import user_manager
-from app.db.managers.base import file_manager
-from app.db.managers.listings import category_manager
 
 from app.api.utils.file_types import ALLOWED_IMAGE_TYPES
 from app.api.utils.file_processors import FileProcessor
